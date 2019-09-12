@@ -98,7 +98,16 @@ def runModel(inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
     print(hemiplasy)
     print(recombination)
 
+
     model = HIDTLModel()
+
+    model.setParameters(coalescent=coalescentArgs, 
+                        duplication=duplicationArgs, 
+                        transfer=transferArgs, 
+                        loss=lossArgs,
+                        hemiplasy=hemiplasy,
+                        recombination=recombination)
+
     model.readSpeciesTree(inputFile)
 
 if __name__ == '__main__':

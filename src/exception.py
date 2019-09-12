@@ -1,0 +1,2 @@
+class HIDTLError(Exception):
+    pass
