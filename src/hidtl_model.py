@@ -34,4 +34,4 @@ class HIDTLModel:
 
     def readSpeciesTree(self, path):
         self.__speciesTree = SpeciesTree()
-        self.__speciesTree.readNewick(path)
+        self.__speciesTree.readNewickFile(path)

@@ -90,7 +90,6 @@ def readCommand(argv):
 
 def runModel(inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
              hemiplasy, recombination):
-    print("OK")
     print(inputFile)
     print(coalescentArgs)
     print(duplicationArgs)
