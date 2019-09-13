@@ -40,9 +40,6 @@ class SpeciesTree:
 
         print(self.__treeTable)
 
-    def constructNodes(self):
-        pass
-
     def coalescent(self, distance_above_root):
         """
         the main multi-species coalecent function
