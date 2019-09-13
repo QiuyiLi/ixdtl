@@ -90,15 +90,6 @@ def readCommand(argv):
 
 def runModel(inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
              hemiplasy, recombination):
-    print(inputFile)
-    print(coalescentArgs)
-    print(duplicationArgs)
-    print(transferArgs)
-    print(lossArgs)
-    print(hemiplasy)
-    print(recombination)
-
-
     model = HIDTLModel()
 
     model.setParameters(coalescent=coalescentArgs, 

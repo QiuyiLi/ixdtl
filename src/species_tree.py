@@ -38,7 +38,7 @@ class SpeciesTree:
         self.__treeTable = TreeTable()
         self.__skbioTree = self.__treeTable.createFromNewickFile(path)
 
-        print(self.__treeTable.table)
+        print(self.__treeTable)
 
     def constructNodes(self):
         pass

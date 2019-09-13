@@ -1,4 +1,5 @@
 import skbio
+from .util import *
 
 class TreeTableEntry:
     def __init__(self):
@@ -12,7 +13,12 @@ class TreeTableEntry:
     def __repr__(self):
         return (f'<TreeTableEntry, id: {self.__id}, name: {self.__name}, ' \
                 f'parent: {self.__parent}, distanceToParent: {self.__distanceToParent}, ' \
-                f'children: {self.__children}, distanceToChildren: {self.__distanceToChildren})')
+                f'children: {self.__children}, distanceToChildren: {self.__distanceToChildren}>')
+
+    def __str__(self):
+        return (f'<TreeTableEntry, id: {self.__id}, name: {self.__name}, ' \
+                f'parent: {self.__parent}, distanceToParent: {self.__distanceToParent}, ' \
+                f'children: {self.__children}, distanceToChildren: {self.__distanceToChildren}>')
     
     @property
     def id(self):
@@ -60,38 +66,67 @@ class TreeTableEntry:
 class TreeTable:
     def __init__(self):
         self.__table = []
+        self.__tableDictId = {}
+        self.__tableDictName = {}
+
+    def __repr__(self):
+        string = '<TreeTable, \n'
+        for entry in self.__table:
+            string += '  ' + str(entry) + '\n'
+        string += '>'
+        return string
+
+    def __str__(self):
+        string = '<TreeTable, \n'
+        for entry in self.__table:
+            string += '  ' + str(entry) + '\n'
+        string += '>'
+        return string
 
     @property
     def table(self):
         return self.__table
 
     def createFromSkbioTree(self, skbioTree):
+        # rename all tree nodes
         self.__renameTreeNodes(skbioTree)
-        nodesDict = self.__toDict(skbioTree)
-        nodesList = self.__toList(nodesDict, root=nodesDict['skbio.TreeNode'])
 
-        for i in range(len(nodesList)):
-            parentIdx = -1
-            for j in range(len(nodesList)):
-                if nodesList[i]['parent'] is nodesList[j]['skbio.TreeNode']:
-                    parentIdx = j
-            entry = TreeTableEntry()
-            entry.id = i
-            entry.name = nodesList[i]['name']
-            entry.parent = parentIdx
-            entry.distanceToParent = -1.0 if not nodesList[i]['distance'] else nodesList[i]['distance']
-            self.__table.append(entry)
+        # assign ids in post order
+        queue = Queue()
+        visited = set()
+        for treeNode in skbioTree.tips():
+            queue.push(treeNode)
+        i = 0
+        while not queue.isEmpty():
+            treeNode = queue.pop()
+            visited.add(treeNode)
+            treeNode.id = i
+            i += 1
+            if treeNode.is_root():
+                continue # equivalently break
+            elif all(True if child in visited else False for child in treeNode.parent.children):
+                queue.push(treeNode.parent)
         
-        print(self.__table)
-        for entry in self.__table:
-            children, distanceToChildren = self.__getChildrenAndDistances(nodesDict['skbio.TreeNode'], entry.name)
-            print(children)
-            print(distanceToChildren)
-            break
+        # create entry for each tree node and store in the table
+        for treeNode in skbioTree.traverse():
+            entry = TreeTableEntry()
+            entry.id = treeNode.id
+            entry.name = treeNode.name
+            self.__tableDictId[entry.id] = entry
+            self.__tableDictName[entry.name] = entry
+            if not treeNode.parent:
+                entry.parent = -1
+                entry.distanceToParent = -1.0
+            else:
+                entry.parent = treeNode.parent.id
+                entry.distanceToParent = treeNode.distance(treeNode.parent)
+                parentTreeNode = self.__tableDictId[treeNode.parent.id]
+                parentTreeNode.children.append(entry.id)
+                parentTreeNode.distanceToChildren.append(treeNode.distance(treeNode.parent))
+            self.__table.append(entry)
 
-            # for child in children:
-            #     node_id = self.nodes_name_dict[child.name].node_id
-            #     node.children.append(node_id)
+        # sort the table by id
+        self.__table.sort(key=lambda x: x.id)
 
         return skbioTree
 
@@ -111,40 +146,3 @@ class TreeTable:
                 name += self.__renameTreeNodes(child)
             skbioTree.name = name
             return skbioTree.name
-
-    def __getChildrenAndDistances(self, skbioTree, name):
-        print(skbioTree.children)
-        for child in skbioTree.children:
-            print(skbioTree.children)
-            if child.name == name:
-                distances = []
-                print(skbioTree.children)
-                for child in skbioTree.children:
-                    distances.append(skbioTree.distance(child))
-                return skbioTree.children, distances
-
-    def __toDict(self, skbioTree):
-        nodesDict = {
-            'skbio.TreeNode': skbioTree,
-            'name': skbioTree.name,
-            'parent': skbioTree.parent,
-            'children': [],
-            'distance': skbioTree.length
-        }
-        if skbioTree.is_tip():
-            return nodesDict
-        for children in skbioTree.children:
-            nodesDict['children'].append(self.__toDict(children))
-        return nodesDict
-
-    def __toList(self, node, root):
-        nodesDict = node.copy()
-        nodes = []
-        for i in range(len(nodesDict['children'])):
-            nodes += self.__toList(nodesDict['children'][i], root=root)
-        del nodesDict['children']
-        nodesDict['distanceToRoot'] = nodesDict['skbio.TreeNode'].distance(root)
-        nodes.append(nodesDict)
-        if nodesDict['skbio.TreeNode'] is root:
-            nodes = sorted(nodes, key=lambda x: x['distanceToRoot'], reverse=True)
-        return nodes
