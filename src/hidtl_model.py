@@ -42,11 +42,11 @@ class HIDTLModel:
             raise HIDTLError('missing loss parameter')
         self.__parameter['loss'] = loss
         
-        if hemiplasy != 0 and hemiplasy != 1: 
+        if hemiplasy is None: 
             raise HIDTLError('missing hemiplasy option')
         self.__parameter['hemiplasy'] = hemiplasy
 
-        if recombination != 0 and recombination != 1: 
+        if recombination is None: 
             raise HIDTLError('missing recombination option')
         self.__parameter['recombination'] = recombination
 
@@ -55,4 +55,5 @@ class HIDTLModel:
         self.__speciesTree.readNewickFile(path)
 
     def createHaplotypeTree(self):
-        pass
+        coalescent_process, clade_set_into_root = self.__speciesTree.coalescent(distance_above_root=10000)
+        print(coalescent_process)

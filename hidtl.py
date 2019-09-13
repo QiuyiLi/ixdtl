@@ -110,6 +110,8 @@ def runModel(inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
 
     model.readSpeciesTree(inputFile)
 
+    # model.createHaplotypeTree()
+
 if __name__ == '__main__':
     """
     The hidtl function called when hidtl.py is run
