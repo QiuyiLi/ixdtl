@@ -87,6 +87,12 @@ class TreeTable:
     def table(self):
         return self.__table
 
+    def getEntryById(self, id):
+        return self.__tableDictId[id]
+
+    def getEntryByName(self, name):
+        return self.__tableDictName[name]
+
     def createFromSkbioTree(self, skbioTree):
         # rename all tree nodes
         self.__renameTreeNodes(skbioTree)
