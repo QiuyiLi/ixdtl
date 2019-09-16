@@ -1,3 +1,4 @@
+import numpy as np
 from .species_tree import *
 from .exception import *
 
@@ -7,7 +8,7 @@ class HIDTLModel:
         self.__speciesTree = None
         self.__haplotypeTree = None
         self.__locusTrees = []
-        self.__parameter = {}
+        self.__parameters = {}
     
     @property
     def speciesTree(self):
@@ -22,39 +23,44 @@ class HIDTLModel:
         return self.__locusTrees
 
     @property
-    def parameter(self):
-        return self.__parameter
+    def parameters(self):
+        return self.__parameters
 
     def setParameters(self, coalescent, duplication, transfer, loss, hemiplasy, recombination):
         if not coalescent: 
             raise HIDTLError('missing coalescent parameter')
-        self.__parameter['coalescent'] = coalescent
+        self.__parameters['coalescent'] = coalescent
 
         if not duplication: 
             raise HIDTLError('missing duplication parameter')
-        self.__parameter['duplication'] = duplication
+        self.__parameters['duplication'] = duplication
 
         if not transfer: 
             raise HIDTLError('missing transfer parameter')
-        self.__parameter['transfer'] = transfer
+        self.__parameters['transfer'] = transfer
 
         if not loss:
             raise HIDTLError('missing loss parameter')
-        self.__parameter['loss'] = loss
+        self.__parameters['loss'] = loss
         
         if hemiplasy is None: 
             raise HIDTLError('missing hemiplasy option')
-        self.__parameter['hemiplasy'] = hemiplasy
+        self.__parameters['hemiplasy'] = hemiplasy
 
         if recombination is None: 
             raise HIDTLError('missing recombination option')
-        self.__parameter['recombination'] = recombination
+        self.__parameters['recombination'] = recombination
 
     def readSpeciesTree(self, path):
         self.__speciesTree = SpeciesTree()
         self.__speciesTree.readFromNewickFile(path)
-        self.__speciesTree.parameter = self.__parameter
-        print(self.__speciesTree.parameter['coalescent'])
+
+
+        self.__speciesTree.lambdaCoalescent = \
+            np.random.gamma(shape=self.__parameters['coalescent']['shape'], 
+                            scale=self.__parameters['coalescent']['scale'], 
+                            size=len(self.__speciesTree.getLeaves()))
+        
 
     def createHaplotypeTree(self):
         coalescent_process, clade_set_into_root = self.__speciesTree.coalescent(distance_above_root=10000)

@@ -1,4 +1,5 @@
 import skbio
+import numpy as np
 from collections import defaultdict
 from statistics import mean
 from .tree_table import *
@@ -11,7 +12,7 @@ class SpeciesTree:
     def __init__(self):
         self.__skbioTree = None
         self.__treeTable = None
-        self.__parameter = None
+        self.__lambdaCoalescent = None
 
     @property
     def skbioTree(self):
@@ -22,12 +23,11 @@ class SpeciesTree:
         return self.__treeTable
 
     @property
-    def parameter(self):
-        return self.__parameter
-
-    @parameter.setter
-    def parameter(self, parameter):
-        self.__parameter = parameter
+    def lambdaCoalescent(self):
+        return self.__lambdaCoalescent
+    @lambdaCoalescent.setter
+    def lambdaCoalescent(self, lambdaCoalescent):
+        self.__lambdaCoalescent = lambdaCoalescent
 
     def getNodeById(self, id):
         return self.__treeTable.getEntryById(id)
@@ -39,7 +39,10 @@ class SpeciesTree:
         return self.__treeTable.getEntryByName(name)
 
     def getRoot(self):
-        return self.__treeTable.getRoot()
+        return self.__treeTable.root
+
+    def getLeaves(self):
+        return self.__treeTable.leaves
     
     def readFromNewickFile(self, path):
         self.__treeTable = TreeTable()
@@ -125,7 +128,7 @@ class SpeciesTree:
             return clade_set[id]
         else:
             # rate of coalescence
-            lambda_c = len(clade_set[id]) * self.__getLambdaCoal(clade_set[id])    
+            lambda_c = len(clade_set[id]) * self.__getLambdaCoalescentByCladeSet(clade_set[id])    
             distance_fake = np.random.exponential(scale=1.0/lambda_c)
 
             # no coalescent event anymore in this branch
@@ -161,13 +164,13 @@ class SpeciesTree:
                                          coalescent_process=coalescent_process)     
         return clade_set[id]
 
-    def __getLambdaCoal(self, clade_set):
+    def __getLambdaCoalescentByCladeSet(self, clade_set):
         indices = []
         for clade in clade_set:
             splited = clade.split('*')[:-1]
             for index in splited:
                 indices.append(int(index))
-        return mean(self.__parameter['coalescent'][indices])
+        return mean(self.__lambdaCoalescent[indices])
     
     def __starInSet(self, target, clade):
         """
