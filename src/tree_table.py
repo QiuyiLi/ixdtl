@@ -1,6 +1,7 @@
 import skbio
 from .util import *
 
+
 class TreeTableEntry:
     def __init__(self):
         self.__id = None
@@ -11,18 +12,19 @@ class TreeTableEntry:
         self.__distanceToChildren = []
 
     def __repr__(self):
-        return (f'<TreeTableEntry, id: {self.__id}, name: {self.__name}, ' \
-                f'parent: {self.__parent}, distanceToParent: {self.__distanceToParent}, ' \
+        return (f'<TreeTableEntry, id: {self.__id}, name: {self.__name}, '
+                f'parent: {self.__parent}, distanceToParent: {self.__distanceToParent}, '
                 f'children: {self.__children}, distanceToChildren: {self.__distanceToChildren}>')
 
     def __str__(self):
-        return (f'<TreeTableEntry, id: {self.__id}, name: {self.__name}, ' \
-                f'parent: {self.__parent}, distanceToParent: {self.__distanceToParent}, ' \
+        return (f'<TreeTableEntry, id: {self.__id}, name: {self.__name}, '
+                f'parent: {self.__parent}, distanceToParent: {self.__distanceToParent}, '
                 f'children: {self.__children}, distanceToChildren: {self.__distanceToChildren}>')
-    
+
     @property
     def id(self):
         return self.__id
+
     @id.setter
     def id(self, id):
         self.__id = id
@@ -30,6 +32,7 @@ class TreeTableEntry:
     @property
     def name(self):
         return self.__name
+
     @name.setter
     def name(self, name):
         self.__name = name
@@ -37,6 +40,7 @@ class TreeTableEntry:
     @property
     def parent(self):
         return self.__parent
+
     @parent.setter
     def parent(self, parent):
         self.__parent = parent
@@ -44,6 +48,7 @@ class TreeTableEntry:
     @property
     def distanceToParent(self):
         return self.__distanceToParent
+
     @distanceToParent.setter
     def distanceToParent(self, distanceToParent):
         self.__distanceToParent = distanceToParent
@@ -51,6 +56,7 @@ class TreeTableEntry:
     @property
     def children(self):
         return self.__children
+
     @children.setter
     def children(self, children):
         self.__children = children
@@ -58,6 +64,7 @@ class TreeTableEntry:
     @property
     def distanceToChildren(self):
         return self.__distanceToChildren
+
     @distanceToChildren.setter
     def distanceToChildren(self, distanceToChildren):
         self.__distanceToChildren = distanceToChildren
@@ -119,10 +126,10 @@ class TreeTable:
             treeNode.id = i
             i += 1
             if treeNode.is_root():
-                continue # equivalently break
+                continue  # equivalently break
             elif all(True if child in visited else False for child in treeNode.parent.children):
                 queue.push(treeNode.parent)
-        
+
         # create entry for each tree node and store in the table
         for treeNode in skbioTree.traverse():
             entry = TreeTableEntry()
@@ -138,7 +145,8 @@ class TreeTable:
                 entry.distanceToParent = treeNode.distance(treeNode.parent)
                 parentTreeNode = self.__tableDictId[treeNode.parent.id]
                 parentTreeNode.children.append(entry.id)
-                parentTreeNode.distanceToChildren.append(treeNode.distance(treeNode.parent))
+                parentTreeNode.distanceToChildren.append(
+                    treeNode.distance(treeNode.parent))
             self.__table.append(entry)
 
             if treeNode.is_tip():
