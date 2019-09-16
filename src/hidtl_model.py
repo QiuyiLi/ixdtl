@@ -27,8 +27,8 @@ class HIDTLModel:
     def parameters(self):
         return self.__parameters
 
-    def run(self, inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
-            hemiplasy, recombination):
+    def run(self, inputFile, coalescentArgs, duplicationArgs, transferArgs, 
+            lossArgs, hemiplasy, recombination):
         # set parameters
         self.setParameters(
             coalescent=coalescentArgs, 
@@ -44,7 +44,8 @@ class HIDTLModel:
         # create a haplotype tree according to the species tree
         self.createHaplotypeTree()
 
-    def setParameters(self, coalescent, duplication, transfer, loss, hemiplasy, recombination):
+    def setParameters(self, coalescent, duplication, transfer, loss, 
+                      hemiplasy, recombination):
         if not coalescent:
             raise HIDTLError('missing coalescent parameter')
         self.__parameters['coalescent'] = coalescent
