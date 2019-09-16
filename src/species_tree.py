@@ -136,7 +136,8 @@ class SpeciesTree:
             return cladeSet[id]
         else:
             # rate of coalescence
-            lambdaC = len(cladeSet[id]) * self.__getLambdaCoalescentByCladeSet(cladeSet[id])
+            lambdaC = len(cladeSet[id]) \
+                      * self.__getLambdaCoalescentByCladeSet(cladeSet[id])
             fakeDistance = np.random.exponential(scale=1.0/lambdaC)
 
             # no coalescent event anymore in this branch
@@ -147,8 +148,8 @@ class SpeciesTree:
                 if len(cladeSet[id]) >= 2:
                     temp_set = sorted(cladeSet[id])
                     couple = np.random.choice(cladeSet[id], size=2, replace=False)
-                    cladeSet[id] = [''.join(self.__starSorted(couple))] + 
-                                   [e for e in cladeSet[id] if e not in couple]
+                    cladeSet[id] = [''.join(self.__starSorted(couple))] \
+                                   + [e for e in cladeSet[id] if e not in couple]
 
                     # save process
                     coalescentProcess[str(id)].append({
