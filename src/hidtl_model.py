@@ -39,7 +39,7 @@ class HIDTLModel:
             recombination=recombination)
 
         # read and create a species tree from input file
-        self.readSpeciesTree(inputFile)
+        self.createSpeciesTree(inputFile)
 
         # create a haplotype tree according to the species tree
         self.createHaplotypeTree()
@@ -70,7 +70,7 @@ class HIDTLModel:
             raise HIDTLError('missing recombination option')
         self.__parameters['recombination'] = recombination
 
-    def readSpeciesTree(self, path):
+    def createSpeciesTree(self, path):
         self.__speciesTree = SpeciesTree(self.__randomState)
         self.__speciesTree.readFromNewickFile(path)
         self.__speciesTree.setLambdaCoalescent(self.__parameters['coalescent'])
