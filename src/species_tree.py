@@ -5,6 +5,9 @@ from .tree_table import *
 
 
 class SpeciesTree:
+    """
+    Nodes are represented in Tree Table which is introduced in tree_table.py
+    """
     def __init__(self):
         self.__skbioTree = None
         self.__treeTable = None
@@ -21,7 +24,7 @@ class SpeciesTree:
     @property
     def parameter(self):
         return self.__parameter
-        
+
     @parameter.setter
     def parameter(self, parameter):
         self.__parameter = parameter
