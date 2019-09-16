@@ -29,6 +29,7 @@ class HIDTLModel:
 
     def run(self, inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
             hemiplasy, recombination):
+        # set parameters
         self.setParameters(
             coalescent=coalescentArgs, 
             duplication=duplicationArgs,
@@ -37,8 +38,10 @@ class HIDTLModel:
             hemiplasy=hemiplasy,
             recombination=recombination)
 
+        # read and create a species tree from input file
         self.readSpeciesTree(inputFile)
 
+        # create a haplotype tree according to the species tree
         self.createHaplotypeTree()
 
     def setParameters(self, coalescent, duplication, transfer, loss, hemiplasy, recombination):
