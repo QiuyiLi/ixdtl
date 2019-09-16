@@ -69,12 +69,11 @@ class SpeciesTree:
         labelled = {}       # avoid doing repeated coalescence
         for node in nodes:
             labelled[node.id] = False
-            cladeSet[node.id] = [
-                str(node.id) + '*'] if not node.children else []
+            cladeSet[node.id] = [str(node.id) + '*'] if not node.children else []
 
         while True:
             for leaf in oldLeaves:
-                if (leaf == root.id):
+                if leaf == root.id:
                     cladeSetIntoRoot = self.__coalescentRecurse(id=root.id,
                                                                 distance=distance_above_root,
                                                                 cladeSet=cladeSet,
@@ -83,7 +82,7 @@ class SpeciesTree:
                 else:
                     parent = self.getNodeById(leaf).parent
                     children = self.getNodeById(parent).children
-                    if (labelled[leaf]):
+                    if labelled[leaf]:
                         continue
                     labelled[leaf] = True
                     if (len(cladeSet[children[0]]) != 0
@@ -102,7 +101,7 @@ class SpeciesTree:
                         # is the union of the clade set of its children after coalescence
                         cladeSet[parent] = list(set().union(
                             cladeSet[children[0]], cladeSet[children[1]]))
-                        if (len(newLeaves) > 0):
+                        if len(newLeaves) > 0:
                             newLeaves = [e for e in newLeaves if e !=
                                          children[0] and e != children[1]]
                         newLeaves.append(parent)
@@ -110,12 +109,12 @@ class SpeciesTree:
                         # updating leaves set
                         newLeaves.append(leaf)
 
-            if (leaf == root.id):
+            if leaf == root.id:
                 break
 
             tempNewLeaves = []
             for newLeaf in newLeaves:
-                if (newLeaf not in tempNewLeaves):
+                if newLeaf not in tempNewLeaves:
                     tempNewLeaves.append(newLeaf)
             oldLeaves = tempNewLeaves.copy()
             newLeaves = []
@@ -133,25 +132,23 @@ class SpeciesTree:
             and record the set before the new coalescence, named "from_set", and the set after the coalescence,
             named "to_set", and the distance from the last coalescent event or the bottom of the branch.
         """
-        if (len(cladeSet[id]) <= 1):
+        if len(cladeSet[id]) <= 1:
             return cladeSet[id]
         else:
             # rate of coalescence
-            lambdaC = len(
-                cladeSet[id]) * self.__getLambdaCoalescentByCladeSet(cladeSet[id])
+            lambdaC = len(cladeSet[id]) * self.__getLambdaCoalescentByCladeSet(cladeSet[id])
             fakeDistance = np.random.exponential(scale=1.0/lambdaC)
 
             # no coalescent event anymore in this branch
-            if (distance < fakeDistance):
+            if distance < fakeDistance:
                 return cladeSet[id]
             else:
                 # when coalescent, randomly merge 2 elements in the gene sets
-                if (len(cladeSet[id]) >= 2):
+                if len(cladeSet[id]) >= 2:
                     temp_set = sorted(cladeSet[id])
-                    couple = np.random.choice(
-                        cladeSet[id], size=2, replace=False)
-                    cladeSet[id] = [''.join(self.__starSorted(
-                        couple))] + [e for e in cladeSet[id] if e not in couple]
+                    couple = np.random.choice(cladeSet[id], size=2, replace=False)
+                    cladeSet[id] = [''.join(self.__starSorted(couple))] + 
+                                   [e for e in cladeSet[id] if e not in couple]
 
                     # save process
                     coalescentProcess[str(id)].append({
@@ -186,7 +183,7 @@ class SpeciesTree:
         checking whether a given clade is in the target set
         modified for the "*" representation
         """
-        if (len(target) <= len(clade)):
+        if len(target) <= len(clade):
             splited_target = target.split('*')[:-1]
             splited_clade = clade.split('*')[:-1]
             return set(splited_target).issubset(set(splited_clade))
