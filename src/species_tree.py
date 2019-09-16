@@ -128,7 +128,8 @@ class SpeciesTree:
             return cladeSet[id]
         else:
             # rate of coalescence
-            lambdaC = len(cladeSet[id]) * self.__getLambdaCoalescentByCladeSet(cladeSet[id])    
+            lambdaC = len(cladeSet[id]) \
+                      * self.__getLambdaCoalescentByCladeSet(cladeSet[id])    
             fakeDistance = np.random.exponential(scale=1.0/lambdaC)
 
             # no coalescent event anymore in this branch
@@ -142,10 +143,6 @@ class SpeciesTree:
                     cladeSet[id] = [''.join(self.__starSorted(couple))] \
                                    + [e for e in cladeSet[id] if e not in couple]
 
-                    # print process
-                    # Debug.log(header="initial node " + str(id) + ": " + str(temp_set) + '\n')
-                    # Debug.log(header="coalescent at node " + str(id) + ": " + str(cladeSet[id]) + ", " + "distance = " + str(fakeDistance) + '\n')
-
                     # save process
                     coalescentProcess[str(id)].append({
                         'from_set': temp_set, 
@@ -158,7 +155,8 @@ class SpeciesTree:
 
                 distance = distance - fakeDistance
 
-                # use recursion to simulate the case when there is more than one coalescent events in the branch
+                # use recursion to simulate the case when there is 
+                # more than one coalescent events in the branch
                 self.__coalescentRecurse(id=id, 
                                          distance=distance, 
                                          cladeSet=cladeSet,
