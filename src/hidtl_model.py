@@ -27,6 +27,10 @@ class HIDTLModel:
     def parameters(self):
         return self.__parameters
 
+    @property
+    def randomState(self):
+        return self.__randomState
+
     def run(self, inputFile, coalescentArgs, duplicationArgs, transferArgs, 
         lossArgs, hemiplasy, recombination):
         # set parameters
