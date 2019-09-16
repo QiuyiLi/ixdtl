@@ -77,7 +77,8 @@ class SpeciesTree:
         # initialize labelled set and clade set
         for node in nodes:
             labelled[node.id] = False
-            cladeSet[node.id] = [str(node.id) + '*'] if not node.children else []
+            cladeSet[node.id] = \
+                [str(node.id) + '*'] if not node.children else []
 
         while True:
             for leaf in oldLeaves:
@@ -142,10 +143,12 @@ class SpeciesTree:
     def __coalescentRecurse(self, id, distance, cladeSet, coalescentProcess):
         """
         This is the recursive part of the multi-species coalescent process:
-            Given a set of n genes gathering into a branch in the species tree from the bottom,
-            whenever we come across a point of coalescence, we randomly merge 2 elements in the gene sets,
-            and record the set before the new coalescence, named "from_set", and the set after the coalescence,
-            named "to_set", and the distance from the last coalescent event or the bottom of the branch.
+        Given a set of n genes gathering into a branch in the species tree 
+        from the bottom, whenever we come across a point of coalescence, 
+        we randomly merge 2 elements in the gene sets, and record the set 
+        before the new coalescence, named "from_set", and the set after 
+        the coalescence, named "to_set", and the distance from the last 
+        coalescent event or the bottom of the branch.
         """
         if len(cladeSet[id]) <= 1:
             return cladeSet[id]
@@ -164,8 +167,9 @@ class SpeciesTree:
                     temp_set = sorted(cladeSet[id])
                     couple = self.__randomState.choice(
                         cladeSet[id], size=2, replace=False)
-                    cladeSet[id] = [''.join(self.__starSorted(couple))] \
-                                   + [e for e in cladeSet[id] if e not in couple]
+                    cladeSet[id] = \
+                        [''.join(self.__starSorted(couple))] \
+                        + [e for e in cladeSet[id] if e not in couple]
 
                     # save process
                     coalescentProcess[str(id)].append({
