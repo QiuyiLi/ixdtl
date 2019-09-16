@@ -101,7 +101,7 @@ def runModel(inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
 
     model.readSpeciesTree(inputFile)
 
-    # model.createHaplotypeTree()
+    model.createHaplotypeTree()
 
 if __name__ == '__main__':
     """

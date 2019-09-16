@@ -1,4 +1,6 @@
 import skbio
+from collections import defaultdict
+from statistics import mean
 from .tree_table import *
 
 
@@ -7,11 +9,6 @@ class SpeciesTree:
         self.__skbioTree = None
         self.__treeTable = None
         self.__parameter = None
-
-        self.__nodes = []
-        self.__nodesDictId = {}
-        self.__nodesDictName = {}
-        self.__root = None
 
     @property
     def skbioTree(self):
@@ -24,61 +21,69 @@ class SpeciesTree:
     @property
     def parameter(self):
         return self.__parameter
+        
     @parameter.setter
     def parameter(self, parameter):
         self.__parameter = parameter
 
     def getNodeById(self, id):
-        return self.__nodesDictId[id]
+        return self.__treeTable.getEntryById(id)
+
+    def getNodes(self):
+        return self.__treeTable.table
 
     def getNodeByName(self, name):
-        return self.__nodesDictName[name]
+        return self.__treeTable.getEntryByName(name)
+
+    def getRoot(self):
+        return self.__treeTable.getRoot()
     
-    def readNewickFile(self, path):
+    def readFromNewickFile(self, path):
         self.__treeTable = TreeTable()
         self.__skbioTree = self.__treeTable.createFromNewickFile(path)
 
         print(self.__treeTable)
+        print(self.getRoot())
 
     def coalescent(self, distance_above_root):
         """
         the main multi-species coalecent function
         """
-        nodes = self.nodes
-        root = self.root
+        nodes = self.getNodes()
+        root = self.getRoot()
         coalescent_process = defaultdict(list)
         clade_set_into_root = None
 
-        old_leaves = [node.node_id for node in nodes if not node.children]      # leaves of the given species tree
+        old_leaves = [node.id for node in nodes if not node.children]      # leaves of the given species tree
         new_leaves = []     # leaves set will be updated in the loop
         clade_set = {}      # set of extant species that an ancestral gene will finally be fixed in
         labelled = {}       # avoid doing repeated coalescence
         for node in nodes:
-            labelled[node.node_id] = False
-            clade_set[node.node_id] = [str(node.node_id) + '*'] if not node.children else []
+            labelled[node.id] = False
+            clade_set[node.id] = [str(node.id) + '*'] if not node.children else []
 
         while True:
             for leaf in old_leaves:
-                if (leaf == root.node_id):
-                    clade_set_into_root = self.__coalescentRecurse(node_id=root.node_id, 
+                if (leaf == root.id):
+                    clade_set_into_root = self.__coalescentRecurse(id=root.id, 
                                                                    distance=distance_above_root, 
                                                                    clade_set=clade_set,
                                                                    coalescent_process=coalescent_process)
                     break
                 else:
-                    parent = self.nodes_id_dict[leaf].parent_id
-                    children = self.nodes_id_dict[parent].children
+                    parent = self.getNodeById(leaf).parent
+                    children = self.getNodeById(parent).children
                     if (labelled[leaf]):
                         continue
                     labelled[leaf] = True
                     if (len(clade_set[children[0]]) != 0 
                         and len(clade_set[children[1]]) != 0):
-                        self.__coalescentRecurse(node_id=children[0], 
-                                                 distance=self.nodes_id_dict[children[0]].distance_to_parent,
+                        self.__coalescentRecurse(id=children[0], 
+                                                 distance=self.getNodeById(children[0]).distanceToParent,
                                                  clade_set=clade_set,
                                                  coalescent_process=coalescent_process)
-                        self.__coalescentRecurse(node_id=children[1], 
-                                                 distance=self.nodes_id_dict[children[1]].distance_to_parent,
+                        self.__coalescentRecurse(id=children[1], 
+                                                 distance=self.getNodeById(children[1]).distanceToParent,
                                                  clade_set=clade_set,
                                                  coalescent_process=coalescent_process)
                         # the clade set of the parent before coalescence is the union of the clade set of its children after coalescence                        
@@ -90,7 +95,7 @@ class SpeciesTree:
                         # updating leaves set
                         new_leaves.append(leaf)
 
-            if (leaf == root.node_id):
+            if (leaf == root.id):
                 break
 
             temp_new_leaves = []
@@ -101,11 +106,11 @@ class SpeciesTree:
             new_leaves = []
             labelled = {}
             for node in nodes:
-                labelled[node.node_id] = False
+                labelled[node.id] = False
 
         return coalescent_process, clade_set_into_root
 
-    def __coalescentRecurse(self, node_id, distance, clade_set, coalescent_process):
+    def __coalescentRecurse(self, id, distance, clade_set, coalescent_process):
         """
         This is the recursive part of the multi-species coalescent process:
             Given a set of n genes gathering into a branch in the species tree from the bottom,
@@ -113,45 +118,45 @@ class SpeciesTree:
             and record the set before the new coalescence, named "from_set", and the set after the coalescence,
             named "to_set", and the distance from the last coalescent event or the bottom of the branch.
         """
-        if (len(clade_set[node_id]) <= 1):
-            return clade_set[node_id]
+        if (len(clade_set[id]) <= 1):
+            return clade_set[id]
         else:
             # rate of coalescence
-            lambda_c = len(clade_set[node_id]) * self.__getLambdaCoal(clade_set[node_id])    
+            lambda_c = len(clade_set[id]) * self.__getLambdaCoal(clade_set[id])    
             distance_fake = np.random.exponential(scale=1.0/lambda_c)
 
             # no coalescent event anymore in this branch
             if (distance < distance_fake):      
-                return clade_set[node_id]
+                return clade_set[id]
             else:
                 # when coalescent, randomly merge 2 elements in the gene sets
-                if (len(clade_set[node_id]) >= 2):   
-                    temp_set = sorted(clade_set[node_id])
-                    couple = np.random.choice(clade_set[node_id], size=2, replace=False)
-                    clade_set[node_id] = [''.join(self.__starSorted(couple))] + [e for e in clade_set[node_id] if e not in couple]
+                if (len(clade_set[id]) >= 2):   
+                    temp_set = sorted(clade_set[id])
+                    couple = np.random.choice(clade_set[id], size=2, replace=False)
+                    clade_set[id] = [''.join(self.__starSorted(couple))] + [e for e in clade_set[id] if e not in couple]
 
                     # print process
-                    # Debug.log(header="initial node " + str(node_id) + ": " + str(temp_set) + '\n')
-                    # Debug.log(header="coalescent at node " + str(node_id) + ": " + str(clade_set[node_id]) + ", " + "distance = " + str(distance_fake) + '\n')
+                    # Debug.log(header="initial node " + str(id) + ": " + str(temp_set) + '\n')
+                    # Debug.log(header="coalescent at node " + str(id) + ": " + str(clade_set[id]) + ", " + "distance = " + str(distance_fake) + '\n')
 
                     # save process
-                    coalescent_process[str(node_id)].append({
+                    coalescent_process[str(id)].append({
                         'from_set': temp_set, 
-                        'to_set': clade_set[node_id].copy(),
+                        'to_set': clade_set[id].copy(),
                         'distance': distance_fake
                     })
                 else:
                     # stop when gene set only has one single element
-                    return clade_set[node_id]
+                    return clade_set[id]
 
                 distance = distance - distance_fake
 
                 # use recursion to simulate the case when there is more than one coalescent events in the branch
-                self.__coalescentRecurse(node_id=node_id, 
+                self.__coalescentRecurse(id=id, 
                                          distance=distance, 
                                          clade_set=clade_set,
                                          coalescent_process=coalescent_process)     
-        return clade_set[node_id]
+        return clade_set[id]
 
     def __getLambdaCoal(self, clade_set):
         indices = []

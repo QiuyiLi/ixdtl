@@ -68,6 +68,7 @@ class TreeTable:
         self.__table = []
         self.__tableDictId = {}
         self.__tableDictName = {}
+        self.__root = None
 
     def __repr__(self):
         string = '<TreeTable, \n'
@@ -92,6 +93,9 @@ class TreeTable:
 
     def getEntryByName(self, name):
         return self.__tableDictName[name]
+
+    def getRoot(self):
+        return self.__root
 
     def createFromSkbioTree(self, skbioTree):
         # rename all tree nodes
@@ -133,6 +137,9 @@ class TreeTable:
 
         # sort the table by id
         self.__table.sort(key=lambda x: x.id)
+
+        # get the root
+        self.__root = self.__table[-1]
 
         return skbioTree
 

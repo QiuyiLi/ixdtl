@@ -52,7 +52,9 @@ class HIDTLModel:
 
     def readSpeciesTree(self, path):
         self.__speciesTree = SpeciesTree()
-        self.__speciesTree.readNewickFile(path)
+        self.__speciesTree.readFromNewickFile(path)
+        self.__speciesTree.parameter = self.__parameter
+        print(self.__speciesTree.parameter['coalescent'])
 
     def createHaplotypeTree(self):
         coalescent_process, clade_set_into_root = self.__speciesTree.coalescent(distance_above_root=10000)
