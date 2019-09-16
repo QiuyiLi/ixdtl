@@ -95,7 +95,7 @@ def readCommand(argv):
 
 
 def runModel(**args):
-    model = HIDTLModel()
+    model = HIDTLModel(1)
     model.run(**args)
 
 

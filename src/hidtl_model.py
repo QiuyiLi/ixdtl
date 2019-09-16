@@ -4,12 +4,12 @@ from .exception import *
 
 
 class HIDTLModel:
-    def __init__(self, randomState=np.random.RandomState(0)):
+    def __init__(self, seed=0):
         self.__speciesTree = None
         self.__haplotypeTree = None
         self.__locusTrees = []
         self.__parameters = {}
-        self.__randomState = randomState
+        self.__randomState = np.random.RandomState(seed)
 
     @property
     def speciesTree(self):
