@@ -53,7 +53,7 @@ class SpeciesTree:
 
         print(self.__treeTable)
 
-    def coalescent(self, distance_above_root):
+    def coalescent(self, distanceAboveRoot):
         """
         the main multi-species coalecent function
         """
@@ -86,7 +86,7 @@ class SpeciesTree:
                     cladeSetIntoRoot = \
                         self.__coalescentRecurse(
                             id=root.id, 
-                            distance=distance_above_root,
+                            distance=distanceAboveRoot,
                             cladeSet=cladeSet, 
                             coalescentProcess=coalescentProcess)
                     break
@@ -156,7 +156,7 @@ class SpeciesTree:
             # rate of coalescence
             lambdaC = len(cladeSet[id]) \
                       * self.__getLambdaCoalescentByCladeSet(cladeSet[id])
-            fakeDistance = self.__randomState.exponential(scale=1.0/lambdaC)
+            fakeDistance = self.__randomState.exponential(scale=1.0 / lambdaC)
 
             # no coalescent event anymore in this branch
             if distance < fakeDistance:
@@ -166,9 +166,10 @@ class SpeciesTree:
                 if len(cladeSet[id]) >= 2:
                     temp_set = sorted(cladeSet[id])
                     couple = self.__randomState.choice(
-                        cladeSet[id], size=2, replace=False)
-                    cladeSet[id] = \
-                        [''.join(self.__starSorted(couple))] \
+                        cladeSet[id], 
+                        size=2, 
+                        replace=False)
+                    cladeSet[id] = [''.join(self.__starSorted(couple))] \
                         + [e for e in cladeSet[id] if e not in couple]
 
                     # save process
@@ -186,8 +187,10 @@ class SpeciesTree:
                 # use recursion to simulate the case when there is
                 # more than one coalescent events in the branch
                 self.__coalescentRecurse(
-                    id=id, distance=distance,
-                    cladeSet=cladeSet, coalescentProcess=coalescentProcess)
+                    id=id, 
+                    distance=distance,
+                    cladeSet=cladeSet, 
+                    coalescentProcess=coalescentProcess)
 
         return cladeSet[id]
 

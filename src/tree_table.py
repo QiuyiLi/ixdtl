@@ -144,7 +144,8 @@ class TreeTable:
             i += 1
             if treeNode.is_root():
                 continue  # equivalently break
-            elif all(True if child in visited else False for child in treeNode.parent.children):
+            elif all(True if child in visited else False 
+                     for child in treeNode.parent.children):
                 queue.push(treeNode.parent)
 
         # create entry for each tree node and store in the table

@@ -28,13 +28,14 @@ class HIDTLModel:
         return self.__parameters
 
     def run(self, inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
-            hemiplasy, recombination, seed=0):
-        self.setParameters(coalescent=coalescentArgs,
-                           duplication=duplicationArgs,
-                           transfer=transferArgs,
-                           loss=lossArgs,
-                           hemiplasy=hemiplasy,
-                           recombination=recombination)
+            hemiplasy, recombination):
+        self.setParameters(
+            coalescent=coalescentArgs, 
+            duplication=duplicationArgs,
+            transfer=transferArgs, 
+            loss=lossArgs, 
+            hemiplasy=hemiplasy,
+            recombination=recombination)
 
         self.readSpeciesTree(inputFile)
 
@@ -71,6 +72,6 @@ class HIDTLModel:
         self.__speciesTree.setLambdaCoalescent(self.__parameters['coalescent'])
             
     def createHaplotypeTree(self):
-        coalescentProcess, cladeSetIntoRoot = \
-            self.__speciesTree.coalescent(distance_above_root=10000)
+        coalescentProcess, cladeSetIntoRoot = self.__speciesTree.coalescent(
+            distanceAboveRoot=10000)
         print(coalescentProcess)
