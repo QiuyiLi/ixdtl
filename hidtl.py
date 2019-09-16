@@ -88,20 +88,9 @@ def readCommand(argv):
 
     return args
 
-def runModel(inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
-             hemiplasy, recombination):
+def runModel(**args):
     model = HIDTLModel()
-
-    model.setParameters(coalescent=coalescentArgs, 
-                        duplication=duplicationArgs, 
-                        transfer=transferArgs, 
-                        loss=lossArgs,
-                        hemiplasy=hemiplasy,
-                        recombination=recombination)
-
-    model.readSpeciesTree(inputFile)
-
-    model.createHaplotypeTree()
+    model.run(**args)
 
 if __name__ == '__main__':
     """
