@@ -4,11 +4,12 @@ from .exception import *
 
 
 class HIDTLModel:
-    def __init__(self):
+    def __init__(self, randomState=np.random.RandomState(0)):
         self.__speciesTree = None
         self.__haplotypeTree = None
         self.__locusTrees = []
         self.__parameters = {}
+        self.__randomState = randomState
 
     @property
     def speciesTree(self):
@@ -27,7 +28,7 @@ class HIDTLModel:
         return self.__parameters
 
     def run(self, inputFile, coalescentArgs, duplicationArgs, transferArgs, lossArgs,
-            hemiplasy, recombination):
+            hemiplasy, recombination, seed=0):
         self.setParameters(coalescent=coalescentArgs,
                            duplication=duplicationArgs,
                            transfer=transferArgs,
@@ -65,15 +66,11 @@ class HIDTLModel:
         self.__parameters['recombination'] = recombination
 
     def readSpeciesTree(self, path):
-        self.__speciesTree = SpeciesTree()
+        self.__speciesTree = SpeciesTree(self.__randomState)
         self.__speciesTree.readFromNewickFile(path)
-
-        self.__speciesTree.lambdaCoalescent = \
-            np.random.gamma(shape=self.__parameters['coalescent']['shape'],
-                            scale=self.__parameters['coalescent']['scale'],
-                            size=len(self.__speciesTree.getLeaves()))
-
+        self.__speciesTree.setLambdaCoalescent(self.__parameters['coalescent'])
+            
     def createHaplotypeTree(self):
-        coalescentProcess, cladeSetIntoRoot = self.__speciesTree.coalescent(
-            distance_above_root=10000)
+        coalescentProcess, cladeSetIntoRoot = \
+            self.__speciesTree.coalescent(distance_above_root=10000)
         print(coalescentProcess)

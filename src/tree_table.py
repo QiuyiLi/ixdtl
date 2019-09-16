@@ -5,6 +5,7 @@ from .util import *
 class TreeTableEntry:
     def __init__(self):
         self.__id = None
+        self.__fakeId = None
         self.__name = None
         self.__parent = None
         self.__distanceToParent = None
@@ -12,12 +13,12 @@ class TreeTableEntry:
         self.__distanceToChildren = []
 
     def __repr__(self):
-        return (f'<TreeTableEntry, id: {self.__id}, name: {self.__name}, '
+        return (f'<TreeTableEntry, id: {self.__id}, fakeId: {self.__fakeId}, name: {self.__name}, '
                 f'parent: {self.__parent}, distanceToParent: {self.__distanceToParent}, '
                 f'children: {self.__children}, distanceToChildren: {self.__distanceToChildren}>')
 
     def __str__(self):
-        return (f'<TreeTableEntry, id: {self.__id}, name: {self.__name}, '
+        return (f'<TreeTableEntry, id: {self.__id}, fakeId: {self.__fakeId}, name: {self.__name}, '
                 f'parent: {self.__parent}, distanceToParent: {self.__distanceToParent}, '
                 f'children: {self.__children}, distanceToChildren: {self.__distanceToChildren}>')
 
@@ -28,6 +29,14 @@ class TreeTableEntry:
     @id.setter
     def id(self, id):
         self.__id = id
+
+    @property
+    def fakeId(self):
+        return self.__fakeId
+
+    @fakeId.setter
+    def fakeId(self, fakeId):
+        self.__fakeId = fakeId
 
     @property
     def name(self):
@@ -72,6 +81,7 @@ class TreeTableEntry:
 
 class TreeTable:
     def __init__(self):
+        self.__skbioTree = None
         self.__table = []
         self.__tableDictId = {}
         self.__tableDictName = {}
@@ -93,6 +103,10 @@ class TreeTable:
         return string
 
     @property
+    def skbioTree(self):
+        return self.__skbioTree
+
+    @property
     def table(self):
         return self.__table
 
@@ -109,6 +123,9 @@ class TreeTable:
 
     def getEntryByName(self, name):
         return self.__tableDictName[name]
+    
+    def getFakeIdFromId(self, id):
+        return self.__tableDictId[id].fakeId
 
     def createFromSkbioTree(self, skbioTree):
         # rename all tree nodes
@@ -158,6 +175,11 @@ class TreeTable:
         # get the root
         self.__root = self.__table[-1]
 
+        # assign fake ids in post order
+        self.__assignFakeIds(skbioTree)
+
+        self.__skbioTree = skbioTree
+
         return skbioTree
 
     def createFromNewickFile(self, path):
@@ -176,3 +198,10 @@ class TreeTable:
                 name += self.__renameTreeNodes(child)
             skbioTree.name = name
             return skbioTree.name
+
+    def __assignFakeIds(self, skbioTree):
+        index = 0
+        for treeNode in skbioTree.postorder():
+            entry = self.getEntryById(treeNode.id)
+            entry.fakeId = index
+            index += 1
