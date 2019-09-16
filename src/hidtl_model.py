@@ -38,7 +38,7 @@ class HIDTLModel:
             hemiplasy=hemiplasy,
             recombination=recombination)
 
-        # read and create a species tree from input file
+        # create a species tree from input file
         self.createSpeciesTree(inputFile)
 
         # create a haplotype tree according to the species tree
