@@ -131,7 +131,7 @@ class TreeTable:
         # rename all tree nodes
         self.__renameTreeNodes(skbioTree)
 
-        # assign ids in post order
+        # assign ids in reversed time order
         queue = Queue()
         visited = set()
         for treeNode in skbioTree.tips():
