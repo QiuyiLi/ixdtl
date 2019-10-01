@@ -61,6 +61,9 @@ class HaplotypeTree:
     def getSkbioTree(self):
         return self.__treeTable.skbioTree
 
+    def setSkbioTree(self, skbioTree):
+        self.__treeTable.skbioTree = skbioTree
+
     def getNodeById(self, id):
         return self.__treeTable.getEntryById(id)
 
@@ -82,14 +85,14 @@ class HaplotypeTree:
     def getDistanceToLeaf(self, nodeId, branchDistance):
         return self.__treeTable.distanceToLeaf(nodeId, branchDistance)
 
-    def initialize(self, locusTree, coalescentProcess=None):
+    def initialize(self, locusTree, coalescentProcess=None, rename=True):
         if not coalescentProcess:
             coalescentProcess, cladeSetIntoRoot = locusTree.coalescent(
                 distanceAboveRoot=float('inf'))
-            self.__coalescentProcess = coalescentProcess
-            print('coalescent process:')
-            print(coalescentProcess)
-            print()
+        self.__coalescentProcess = coalescentProcess
+        print('coalescent process:')
+        print(coalescentProcess)
+        print()
 
         timeSequences = locusTree.getTimeSequences(
             coalescentProcess=coalescentProcess)
@@ -98,7 +101,7 @@ class HaplotypeTree:
         print()
 
         skbioTree = self.createSkbioTree(timeSequences)
-        self.readFromSkbioTree(skbioTree)
+        self.readFromSkbioTree(skbioTree, rename)
 
     def setEventRates(self, duplicationPrmt, transferPrmt, lossPrmt):
         self.__eventRates['d'] = self.randomState.gamma(
@@ -119,8 +122,11 @@ class HaplotypeTree:
 
     def createSkbioTree(self, timeSequences):
         skbioTree = skbio.tree.TreeNode()
-        if len(timeSequences) > 0:
-            skbioTree.name = next(iter(timeSequences.values()))[-1][0]
+        tempTimeSequences = timeSequences.copy()
+        for k, v in timeSequences.items():
+            if not v: del tempTimeSequences[k]
+        if len(tempTimeSequences) > 0:
+            skbioTree.name = next(iter(tempTimeSequences.values()))[-1][0]
             self.__createSkbioTreeRecurse(
                 skbioTree=skbioTree, timeSequences=timeSequences)
             skbioTree.length = None
@@ -129,9 +135,68 @@ class HaplotypeTree:
             skbioTree.length = None
         return skbioTree
 
-    def readFromSkbioTree(self, skbioTree):
+    def __createSkbioTreeRecurse(self, skbioTree, timeSequences):
+        # one node (leaf)
+        if skbioTree.name.count('*') == 1:
+            skbioTree.length = self.__distanceToParent(
+                nodeName=skbioTree.name, parentName=skbioTree.parent.name, 
+                timeSequences=timeSequences)
+            return
+        # two nodes
+        elif len(skbioTree.name) == 4:
+            childLName = skbioTree.name[:2]
+            childRName = skbioTree.name[2:]
+            childL = skbio.tree.TreeNode(
+                name=childLName, 
+                length=self.__distanceToParent(
+                    nodeName=childLName, parentName=skbioTree.name, 
+                    timeSequences=timeSequences), 
+                parent=skbioTree)
+            childR = skbio.tree.TreeNode(
+                name=childRName, 
+                length=self.__distanceToParent(
+                    nodeName=childRName, parentName=skbioTree.name, 
+                    timeSequences=timeSequences),
+                parent=skbioTree)
+            skbioTree.children = [childL, childR]
+            return
+        # otherwise
+        else:
+            isFound = False
+            for _, sequence in timeSequences.items():
+                prevPair = None
+                for pair in sequence:
+                    if (prevPair != None and skbioTree.name == pair[0]):
+                        childLName = prevPair[0]
+                        childRName = self.__starReplace(
+                            skbioTree.name, prevPair[0])
+                        childL = skbio.tree.TreeNode(
+                            name=childLName, 
+                            length=self.__distanceToParent(
+                                nodeName=childLName, 
+                                parentName=skbioTree.name, 
+                                timeSequences=timeSequences), 
+                            parent=skbioTree)
+                        childR = skbio.tree.TreeNode(
+                            name=childRName, 
+                            length=self.__distanceToParent(
+                                nodeName=childRName, 
+                                parentName=skbioTree.name, 
+                                timeSequences=timeSequences),
+                            parent=skbioTree)
+                        self.__createSkbioTreeRecurse(
+                            skbioTree=childL, timeSequences=timeSequences)
+                        self.__createSkbioTreeRecurse(
+                            skbioTree=childR, timeSequences=timeSequences)
+                        skbioTree.children = [childL, childR]
+                        isFound = True
+                        break
+                    prevPair = pair
+                if isFound: break
+
+    def readFromSkbioTree(self, skbioTree, rename=True):
         self.__treeTable = TreeTable()
-        self.__treeTable.createFromSkbioTree(skbioTree)
+        self.__treeTable.createFromSkbioTree(skbioTree, rename)
 
     def dtlProcess(self, distance, event=None):
         events = []
@@ -287,65 +352,6 @@ class HaplotypeTree:
             indices.append(int(index))
         return mean(self.eventRates[eventType][indices])
 
-    def __createSkbioTreeRecurse(self, skbioTree, timeSequences):
-        # one node (leaf)
-        if skbioTree.name.count('*') == 1:
-            skbioTree.length = self.__distanceToParent(
-                nodeName=skbioTree.name, parentName=skbioTree.parent.name, 
-                timeSequences=timeSequences)
-            return
-        # two nodes
-        elif len(skbioTree.name) == 4:
-            childLName = skbioTree.name[:2]
-            childRName = skbioTree.name[2:]
-            childL = skbio.tree.TreeNode(
-                name=childLName, 
-                length=self.__distanceToParent(
-                    nodeName=childLName, parentName=skbioTree.name, 
-                    timeSequences=timeSequences), 
-                parent=skbioTree)
-            childR = skbio.tree.TreeNode(
-                name=childRName, 
-                length=self.__distanceToParent(
-                    nodeName=childRName, parentName=skbioTree.name, 
-                    timeSequences=timeSequences),
-                parent=skbioTree)
-            skbioTree.children = [childL, childR]
-            return
-        # otherwise
-        else:
-            isFound = False
-            for _, sequence in timeSequences.items():
-                prevPair = None
-                for pair in sequence:
-                    if (prevPair != None and skbioTree.name == pair[0]):
-                        childLName = prevPair[0]
-                        childRName = self.__starReplace(
-                            skbioTree.name, prevPair[0])
-                        childL = skbio.tree.TreeNode(
-                            name=childLName, 
-                            length=self.__distanceToParent(
-                                nodeName=childLName, 
-                                parentName=skbioTree.name, 
-                                timeSequences=timeSequences), 
-                            parent=skbioTree)
-                        childR = skbio.tree.TreeNode(
-                            name=childRName, 
-                            length=self.__distanceToParent(
-                                nodeName=childRName, 
-                                parentName=skbioTree.name, 
-                                timeSequences=timeSequences),
-                            parent=skbioTree)
-                        self.__createSkbioTreeRecurse(
-                            skbioTree=childL, timeSequences=timeSequences)
-                        self.__createSkbioTreeRecurse(
-                            skbioTree=childR, timeSequences=timeSequences)
-                        skbioTree.children = [childL, childR]
-                        isFound = True
-                        break
-                    prevPair = pair
-                if isFound: break
-
     def __distanceToParent(self, nodeName, parentName, timeSequences):
         for leaf, sequence in timeSequences.items():
             if (nodeName.count('*') == 1 and nodeName[0] == str(leaf)):
@@ -401,22 +407,26 @@ class HaplotypeTree:
                     distanceAboveRoot=distanceAboveSpeciesNode)
 
                 # insert newHaplotypeTree
+                print(haplotypeTree.getSkbioTree().ascii_art())
                 geneNode = haplotypeTree.getSkbioTree().find(event['geneNodeName'])
                 # 1. create new node
-                newNode = TreeNode()
-                # 2. change children
-                newNode.children = [geneNode, newHaplotypeTree]
-                for i in range(len(geneNode.parent.children)):
-                    if geneNode.parent.children[i] == geneNode:
-                        geneNode.parent.children[i] = newNode
-                        break
-                # 3. change parent
+                newNode = skbio.tree.TreeNode()
+                # 2. change parent
                 geneNode.parent = newNode
-                newHaplotypeTree.parent = newNode
-                # 4. change length
-                newHaplotypeTree.length = event['eventHeight'] - newHaplotypeTree.treeHeight
+                newHaplotypeTree.getSkbioTree().parent = newNode
+                # 3. change length
+                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
                 newNode.length = geneNode.length - event['distanceToGeneNode']
                 geneNode.length = event['distanceToGeneNode']
+                # 4. change children
+                newNode.children = [geneNode, newHaplotypeTree.getSkbioTree()]
+                if geneNode.parent:
+                    for i in range(len(geneNode.parent.children)):
+                        if geneNode.parent.children[i] == geneNode:
+                            geneNode.parent.children[i] = newNode
+                            break
+                else:
+                    haplotypeTree.setSkbioTree(newNode)
 
 
                 # if coalescentProcess:
@@ -451,24 +461,27 @@ class HaplotypeTree:
                 newHaplotypeTree = self.__dtSubtreeRecurse(
                     event=event, newLocusRootId=transferTargetId, 
                     distanceAboveRoot=distanceAboveTarget)
+
                 # insert newHaplotypeTree
-                haplotypeTree.getSkbioTree()
                 geneNode = haplotypeTree.getSkbioTree().find(event['geneNodeName'])
                 # 1. create new node
-                newNode = TreeNode()
-                # 2. change children
-                newNode.children = [geneNode, newHaplotypeTree]
-                for i in range(len(geneNode.parent.children)):
-                    if geneNode.parent.children[i] == geneNode:
-                        geneNode.parent.children[i] = newNode
-                        break
-                # 3. change parent
+                newNode = skbio.tree.TreeNode()
+                # 2. change parent
                 geneNode.parent = newNode
-                newHaplotypeTree.parent = newNode
-                # 4. change length
-                newHaplotypeTree.length = event['eventHeight'] - newHaplotypeTree.treeHeight
+                newHaplotypeTree.getSkbioTree().parent = newNode
+                # 3. change length
+                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
                 newNode.length = geneNode.length - event['distanceToGeneNode']
                 geneNode.length = event['distanceToGeneNode']
+                # 4. change children
+                newNode.children = [geneNode, newHaplotypeTree.getSkbioTree()]
+                if geneNode.parent:
+                    for i in range(len(geneNode.parent.children)):
+                        if geneNode.parent.children[i] == geneNode:
+                            geneNode.parent.children[i] = newNode
+                            break
+                else:
+                    haplotypeTree.setSkbioTree(newNode)
 
             elif (event['type'] == 'loss'):
                 # index = Utility.increment()
@@ -478,12 +491,12 @@ class HaplotypeTree:
                 # f = open(os.path.join(path, file_name), 'w')
                 # f.write(str(event['geneNodeName']) + ',' + str(event['distance_to_gene_node']) + ',' + str(index))
                 # f.close()
-                haplotypeTree.getSkbioTree().remove_deleted(
+                haplotypeSkbioTree = haplotypeTree.getSkbioTree()
+                haplotypeSkbioTree.remove_deleted(
                     lambda x: x.name == event['geneNodeName'])
-                haplotypeTree.getSkbioTree().prune()
+                haplotypeSkbioTree.prune()
 
         return haplotypeTree
-
 
     def __dtSubtreeRecurse(self, event, newLocusRootId, distanceAboveRoot):
         if (event['type'] == 'duplication' or event['type'] == 'transfer'): 
@@ -511,7 +524,7 @@ class HaplotypeTree:
                 randomState=self.randomState, speciesTree=self.speciesTree)
             newHaplotypeTree.initialize(
                 locusTree=newLocusTree, 
-                coalescentProcess=locusTreeCoalescentProcess)
+                coalescentProcess=locusTreeCoalescentProcess, rename=False)
             newHaplotypeTree.eventRates = self.eventRates
 
             rootLength = event['eventHeight'] - newHaplotypeTree.getTreeHeight()

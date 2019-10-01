@@ -25,7 +25,6 @@ class TreeTableEntry:
     @property
     def id(self):
         return self.__id
-
     @id.setter
     def id(self, id):
         self.__id = id
@@ -33,7 +32,6 @@ class TreeTableEntry:
     @property
     def fakeId(self):
         return self.__fakeId
-
     @fakeId.setter
     def fakeId(self, fakeId):
         self.__fakeId = fakeId
@@ -41,7 +39,6 @@ class TreeTableEntry:
     @property
     def name(self):
         return self.__name
-
     @name.setter
     def name(self, name):
         self.__name = name
@@ -49,7 +46,6 @@ class TreeTableEntry:
     @property
     def parent(self):
         return self.__parent
-
     @parent.setter
     def parent(self, parent):
         self.__parent = parent
@@ -57,7 +53,6 @@ class TreeTableEntry:
     @property
     def distanceToParent(self):
         return self.__distanceToParent
-
     @distanceToParent.setter
     def distanceToParent(self, distanceToParent):
         self.__distanceToParent = distanceToParent
@@ -65,7 +60,6 @@ class TreeTableEntry:
     @property
     def children(self):
         return self.__children
-
     @children.setter
     def children(self, children):
         self.__children = children
@@ -73,7 +67,6 @@ class TreeTableEntry:
     @property
     def distanceToChildren(self):
         return self.__distanceToChildren
-
     @distanceToChildren.setter
     def distanceToChildren(self, distanceToChildren):
         self.__distanceToChildren = distanceToChildren
@@ -106,6 +99,9 @@ class TreeTable:
     @property
     def skbioTree(self):
         return self.__skbioTree
+    @skbioTree.setter
+    def skbioTree(self, skbioTree):
+        self.__skbioTree = skbioTree
 
     @property
     def table(self):
@@ -149,9 +145,11 @@ class TreeTable:
         # calculate tree height (any leaf node to the root)
         self.__treeHeight = self.__distanceToRoot(self.leaves[0].id)
 
-    def createFromSkbioTree(self, skbioTree):
-        # rename all tree nodes
-        self.__renameTreeNodes(skbioTree)
+    def createFromSkbioTree(self, skbioTree, rename=True):
+        if rename:
+            print("RENAME!")
+            # rename all tree nodes
+            self.__renameTreeNodes(skbioTree)
 
         # assign ids in reversed time order
         queue = Queue()
