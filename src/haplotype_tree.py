@@ -3,6 +3,7 @@ import numpy as np
 from collections import defaultdict
 from statistics import mean
 from .tree_table import *
+from .ixdtl_model import *
 
 
 class HaplotypeTree:
@@ -78,13 +79,14 @@ class HaplotypeTree:
     def getDistanceToLeaf(self, nodeId, branchDistance):
         return self.__treeTable.distanceToLeaf(nodeId, branchDistance)
 
-    def initialize(self, locusTree):
-        coalescentProcess, cladeSetIntoRoot = locusTree.coalescent(
-            distanceAboveRoot=float('inf'))
-        self.__coalescentProcess = coalescentProcess
-        print('coalescent process:')
-        print(coalescentProcess)
-        print()
+    def initialize(self, locusTree, coalescentProcess=None):
+        if not coalescentProcess:
+            coalescentProcess, cladeSetIntoRoot = locusTree.coalescent(
+                distanceAboveRoot=float('inf'))
+            self.__coalescentProcess = coalescentProcess
+            print('coalescent process:')
+            print(coalescentProcess)
+            print()
 
         timeSequences = locusTree.getTimeSequences(
             coalescentProcess=coalescentProcess)
@@ -128,10 +130,13 @@ class HaplotypeTree:
         self.__treeTable = TreeTable()
         self.__treeTable.createFromSkbioTree(skbioTree)
 
-    def dtlProcess(self):
+    def dtlProcess(self, distance, event=None):
         events = []
+        if len(self.getNodes()) == 1:
+            # trivial case
+            distance = event['distanceToGeneNode']
         self.__dtlProcessRecurse(
-            skbioTreeNode=self.getSkbioTree(), distance=0, events=events)
+            skbioTreeNode=self.getSkbioTree(), distance=distance, events=events)
         return events
 
     def __dtlProcessRecurse(self, skbioTreeNode, distance, events):
@@ -239,6 +244,7 @@ class HaplotypeTree:
             speciesId = int(geneName[:-1])     
         return speciesId
 
+    # M function
     def __mapEventToSpeciesTree(self, geneId, eventHeight, speciesId=None):
         if speciesId == None:
             speciesId = self.__mapGeneIdToSpeciesId(geneId=geneId)
@@ -358,3 +364,197 @@ class HaplotypeTree:
         b = substring.split('*')[:-1]
         diff = set(a).difference(set(b))
         return ''.join([e + '*' for e in sorted(list(diff))])
+
+    def dtSubtree(self, coalescentProcess, events, path=None):
+        """
+        1. find all the duplication points on the coalescent tree 
+        2. find the corresponding duplicaion subtree
+        3. do subtree coalescence to obtain the sub_coalescent_tree
+        4. find all the duplication points on the sub_coalescent_tree
+        5. recurse
+        """
+        # if path:
+        #     f = open(os.path.join(path, 'gene_tree.txt'), 'w')
+        #     f.write(str(self.skbio_tree))
+        #     f.close()
+        #     f = open(os.path.join(path, 'species_tree.txt'), 'w')
+        #     f.write(str(self.species_tree.skbio_tree))
+        #     f.close()
+        #     self.find_ils(path)
+
+        # GeneTree.full_events += events
+
+        for event in events:
+            # a = event['geneNodeName'].split('*')[:-1]
+            # for i in range(len(a)):
+            #     a[i] = SpeciesTree.global_species_tree.get_fake_id_from_real_id(a[i])
+
+            if (event['type'] == 'duplication'):
+                speciesId, distanceAboveSpeciesNode = self.__mapEventToSpeciesTree(geneId=event['geneNodeId'],
+                    eventHeight=event['eventHeight'], speciesId=None)
+                self.__dtSubtreeRecurse(
+                    event=event, nodeId=speciesId, 
+                    coalescentDistance=distanceAboveSpeciesNode, path=path)
+
+                # if coalescentProcess:
+                #     # non-trivial case
+                #     # find species node id for the event and the distance from the event point to the species node
+                #     for speciesNodeId, mergingSets in coalescentProcess.items():
+                #         for mergingSet in mergingSets:
+                #             if (event['geneNodeName'] in mergingSet['toSet'] 
+                #                 and event['geneNodeName'] not in mergingSet['fromSet']):
+                #                 speciesId = speciesNodeId
+                #                 coalescentDistance = mergingSet['distance']
+                #     if speciesId == None:
+                #         # does not coalese with others (geneNodeName = 1*)
+                #         speciesId = int(event['geneNodeName'][:-1])
+                #         coalescentDistance = 0
+                #     self.__dtSubtreeRecurse(
+                #         event=event, nodeId=nodeId, 
+                #         coalescentDistance=coalescentDistance, path=path)
+                # else:       
+                #     # trivial
+                #     nodeId = int(event['geneNodeName'][:-1])
+                #     coalescentDistance = 0
+                #     self.__dtSubtreeRecurse(
+                #         event=event, nodeId=nodeId, 
+                #         coalescentDistance=coalescentDistance, path=path)
+
+
+            elif (event['type'] == 'transfer'):
+                trans_target_id = event['target_species_id']
+                target_height = SpeciesTree.global_species_tree.distance_to_leaf(trans_target_id, 0)
+                distance_above_target = event['event_height'] - target_height
+                self.__dtSubtreeRecurse(event=event, nodeId=trans_target_id, coalescentDistance=distance_above_target, path=path)
+                # insert sub-tree
+            elif (event['type'] == 'loss'):
+                # index = Utility.increment()
+                # event['index'] = index
+                # Debug.event_count['L'] += 1
+                # file_name = 'loss_' + str(event['distance_to_gene_node'])
+                # f = open(os.path.join(path, file_name), 'w')
+                # f.write(str(event['geneNodeName']) + ',' + str(event['distance_to_gene_node']) + ',' + str(index))
+                # f.close()
+                IxDTLModel.geneSkbioTree.remove_deleted(
+                    lambda x: x.name == event['geneNodeName'])
+                IxDTLModel.geneSkbioTree.prune()
+
+
+    def __dtSubtreeRecurse(self, event, newLocusRootId, distanceAboveRoot, path=None):
+
+        if (event['type'] == 'transfer'): 
+            # nodeId = target_id
+            speciesSkbioTree = self.speciesTree.getSkbioTree()
+            newLocusRootName = self.speciesTree.getNodeById(newLocusRootId).name
+
+            newLocusSkbioTree = speciesSkbioTree.find(newLocusRootName).deepcopy()
+            newLocusTreeNames = [node.name for node in newLocusSkbioTree.traverse()]
+            newLocusTreeNodes = [node for node in self.speciesTree.getNodes() 
+                if node.name in newLocusTreeNames]
+            newLocusTree = LocusTree(randomState=self.randomState)
+            newLocusTree.initialize(nodes=newLocusTreeNodes, skbioTree=newLocusSkbioTree)
+
+            if self.hemiplasy == 1:
+                locusTreeCoalescentProcess, chosenGeneName = \
+                    newLocusTree.incompleteCoalescent(distanceAboveRoot)
+            elif self.hemiplasy == 0:
+                locusTreeCoalescentProcess = \
+                    newLocusTree.boundedCoalescent(distanceAboveRoot)
+
+            newHaplotypeTree = HaplotypeTree(
+                randomState=self.randomState, speciesTree=self.speciesTree)
+            newHaplotypeTree.initialize(
+                locusTree=newLocusTree, 
+                coalescentProcess=locusTreeCoalescentProcess)
+
+            rootLength = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
+            newHaplotypeTree.getSkbioTree().length = rootLength
+            newHaplotypeTreeEvents = newHaplotypeTree.dtlProcess(
+                event=event, distance=rootLength)
+            
+            # index = Utility.increment()
+            # event['index'] = index
+            # _id = 'trans_subtree_' + str(index)
+            # next_dir = os.path.join(path, _id)
+            # os.mkdir(next_dir)
+            # file_name = 'event.txt'
+            # f = open(os.path.join(next_dir, file_name), 'w')
+            # f.write(str(event['geneNodeName']) + ',' + str(event['distance_to_gene_node']) + ',' + str(event['type']) + ',' + str(index))
+            # f.close()
+            newHaplotypeTree.dtSubtree(
+                coalescentProcess=locusTreeCoalescentProcess, 
+                events=newHaplotypeTreeEvents, path=path)
+
+        if (event['type'] == 'duplication'):
+            Debug.log(header='\n\n\n' + '='*80 + '\nCurrent event:' + '\n',
+                      bodies=[event], pformat=True)
+            species_skbio_tree = self.species_tree.skbio_tree
+            name = self.species_tree.nodes_id_dict[nodeId].name
+
+            subtree = species_skbio_tree.find(name).deepcopy()
+            subtree_names = [node.name for node in subtree.traverse()]
+            subtree_nodes = [node for node in self.species_tree.nodes if node.name in subtree_names]
+
+            species_subtree = SpeciesTree(nodes=subtree_nodes)
+            species_subtree.skbio_tree = subtree
+            Debug.log(header='\nspecies_subtree_nodes:\n', bodies=species_subtree.nodes)
+
+            distance_above_root = coalescentDistance
+            sub_leaves = [int(nodeId) for nodeId in event['geneNodeName'].strip().split('*')[:-1]]
+            Debug.log(header='\nspecies_subtree_coal:\n')
+            if (GeneTree.recombination == 1):
+                if (GeneTree.hemiplasy == 1):
+                    species_subtree_coal_process, chosen_gene_name = species_subtree.incomplete_coalescent(distance_above_root, recombination=1)
+                elif (GeneTree.hemiplasy == 0):
+                    species_subtree_coal_process = species_subtree.bounded_coalescent(distance_above_root, recombination=1)       
+                # original_gene_name = event['geneNodeName']
+                # chosen_gene_set = set(chosen_gene_name.split('*')[:-1])
+                # original_gene_set = set(original_gene_name.split('*')[:-1])
+                # union_gene_set = original_gene_set.union(chosen_gene_set)
+                # print(union_gene_set)
+            elif (GeneTree.dup_recombination == 0):
+                if (GeneTree.hemiplasy == 1):
+                    species_subtree_coal_process, chosen_gene_name = species_subtree.incomplete_coalescent(distance_above_root, recombination=0, sub_leaves=sub_leaves)
+                elif (GeneTree.hemiplasy == 0):
+                    species_subtree_coal_process = species_subtree.bounded_coalescent(distance_above_root, recombination=0, sub_leaves=sub_leaves)        
+
+            Debug.log(header='\nspecies_subtree_coal_process:\n',
+                      bodies=[species_subtree_coal_process], pformat=True)
+
+            species_subtree_time_seq = species_subtree.time_sequences(coalescentProcess=species_subtree_coal_process)
+            Debug.log(header='\nspecies_subtree_time_seq:\n',
+                      bodies=[species_subtree_time_seq], pformat=True)
+
+            # save subtree
+            # Debug.save_tree_nodes(nodes=species_subtree.nodes, 
+            #                       path=Debug.subtree_file_name('output/subtrees', 'dup', nodeId, distance_above_root), 
+            #                       distance=distance_above_root)
+            
+            gene_subtree = GeneTree(time_sequences=species_subtree_time_seq, 
+                                    species_tree=species_subtree, 
+                                    coalescentProcess=species_subtree_coal_process)
+            gene_subtree.skbio_tree.length = event['event_height'] - gene_subtree.total_distance
+            Debug.log(header='\ngene_subtree nodes:\n', bodies=gene_subtree.nodes)
+            # Debug.save_tree_nodes(nodes=gene_subtree.nodes, 
+            #                       path=Debug.subtree_file_name('output/subtrees', 'dup', nodeId, distance_above_root), 
+            #                       mode='a')
+
+            # Debug.save_output(contents=[gene_subtree.skbio_tree],
+            #                   path=Debug.subtree_file_name('output/newick_gene_subtrees', 'dup', nodeId, distance_above_root))
+
+            Debug.log(header='\ngene_subtree dlt_process:\n')
+            gene_subtree_height = gene_subtree.total_distance
+            gene_subtree_events = gene_subtree.dlt_process(event=event, distance=event['event_height'] - gene_subtree_height)
+            Debug.log(header='\ngene_subtree events:\n',
+                      bodies=[gene_subtree_events], pformat=True)
+
+            index = Utility.increment()
+            event['index'] = index
+            _id = 'dup_subtree_' + str(index)
+            next_dir = os.path.join(path, _id)
+            os.mkdir(next_dir)
+            file_name = 'event.txt'
+            f = open(os.path.join(next_dir, file_name), 'w')
+            f.write(str(event['geneNodeName']) + ',' + str(event['distance_to_gene_node']) + ',' + str(event['type']) + ',' + str(index))
+            f.close()
+            gene_subtree.dt_subtree(coalescentProcess=species_subtree_coal_process, events=gene_subtree_events, path=next_dir)

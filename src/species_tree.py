@@ -63,7 +63,7 @@ class SpeciesTree:
     def getDistanceToLeaf(self, nodeId, branchDistance):
         return self.__treeTable.distanceToLeaf(nodeId, branchDistance)
 
-    def readFromNewickFile(self, path):
+    def initialize(self, path):
         self.__treeTable = TreeTable()
         self.__treeTable.createFromNewickFile(path)
 
@@ -268,3 +268,21 @@ class SpeciesTree:
                                 leafName=element, 
                                 coalescentProcess=coalescentProcess)
         return sequence
+
+    def boundedCoalescent(self, distanceAboveRoot):
+        """
+        abstract method
+        implementation in locus_tree.py
+        """
+        pass
+    
+    def incompleteCoalescent(self, distanceAboveRoot):
+        """
+        abstract method
+        implementation in locus_tree.py
+        """
+        pass
+
+        
+
+    

@@ -132,6 +132,23 @@ class TreeTable:
     def getFakeIdFromId(self, id):
         return self.__tableDictId[id].fakeId
 
+    def createFromEntries(self, entries, skbioTree):
+        self.__skbioTree = skbioTree
+        for entry in entries:
+            self.__table.append(entry)
+            self.__tableDictId[entry.id] = entry
+            self.__tableDictName[entry.name] = entry
+            if entry.name == skbioTree.name:
+                self.__root = entry
+            if skbioTree.find(entry.name).is_tip():
+                self.__leaves.append(entry)
+        
+        # sort the table by id
+        self.__table.sort(key=lambda x: x.id)
+
+        # calculate tree height (any leaf node to the root)
+        self.__treeHeight = self.__distanceToRoot(self.leaves[0].id)
+
     def createFromSkbioTree(self, skbioTree):
         # rename all tree nodes
         self.__renameTreeNodes(skbioTree)

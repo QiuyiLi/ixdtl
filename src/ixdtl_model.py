@@ -6,6 +6,8 @@ from .exception import *
 
 class IxDTLModel:
 
+    geneTree = None
+
     def __init__(self, seed=0):
         self.__randomState = np.random.RandomState(seed)
 
@@ -52,9 +54,19 @@ class IxDTLModel:
         self.constructOriginalHaplotypeTree()
 
         # run dtl process
-        events = self.__haplotypeTree.dtlProcess()
+        events = self.haplotypeTree.dtlProcess(distance=0)
 
-        print(events)
+        # print(self.haplotypeTree.getSkbioTree().ascii_art())
+
+        # self.haplotypeTree.getSkbioTree().remove_deleted(lambda x: x.name == '1*2*')
+
+        # print(self.haplotypeTree.getSkbioTree().ascii_art())
+
+        # self.haplotypeTree.getSkbioTree().prune()
+
+        # print(self.haplotypeTree.getSkbioTree().ascii_art())
+
+
 
     def setParameters(self, coalescent, duplication, transfer, loss, 
         hemiplasy, recombination):
@@ -83,31 +95,36 @@ class IxDTLModel:
         self.__parameters['recombination'] = recombination
 
     def readSpeciesTree(self, path):
-        self.__speciesTree = SpeciesTree(randomState=self.__randomState)
-        self.__speciesTree.readFromNewickFile(path=path)
-        self.__speciesTree.setCoalescentRate(
+        self.__speciesTree = SpeciesTree(randomState=self.randomState)
+
+        self.speciesTree.initialize(path=path)
+
+        self.speciesTree.setCoalescentRate(
             coalescentPrmt=self.__parameters['coalescent'])
             
         print('species tree:')
-        print(self.__speciesTree)
+        print(self.speciesTree)
         print()
             
     def constructOriginalHaplotypeTree(self):
         self.__haplotypeTree = HaplotypeTree(
-            randomState=self.__randomState, speciesTree=self.__speciesTree)
-        self.__haplotypeTree.initialize(locusTree=self.__speciesTree)
+            randomState=self.randomState, speciesTree=self.speciesTree)
 
-        self.__haplotypeTree.setEventRates(
-            duplicationPrmt=self.__parameters['duplication'],
-            transferPrmt=self.__parameters['transfer'],
-            lossPrmt=self.__parameters['loss'])
-        self.__haplotypeTree.setRecombination(
-            recombination=self.__parameters['recombination'])
-        self.__haplotypeTree.setHemiplasy(
-            hemiplasy=self.__parameters['hemiplasy'])
+        self.haplotypeTree.initialize(locusTree=self.speciesTree)
+
+        self.haplotypeTree.setEventRates(
+            duplicationPrmt=self.parameters['duplication'],
+            transferPrmt=self.parameters['transfer'],
+            lossPrmt=self.parameters['loss'])
+        self.haplotypeTree.setRecombination(
+            recombination=self.parameters['recombination'])
+        self.haplotypeTree.setHemiplasy(
+            hemiplasy=self.parameters['hemiplasy'])
+
+        IxDTLModel.geneSkbioTree = self.haplotypeTree.getSkbioTree().deepcopy()
 
         print('original haplotype tree:')
-        print(self.__haplotypeTree)
+        print(self.haplotypeTree)
         print()
         
         
