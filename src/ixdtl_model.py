@@ -4,6 +4,7 @@ from .exception import *
 
 
 class IxDTLModel:
+
     def __init__(self, seed=0):
         self.__speciesTree = None
         self.__haplotypeTree = None
@@ -81,5 +82,5 @@ class IxDTLModel:
             
     def createHaplotypeTree(self):
         coalescentProcess, cladeSetIntoRoot = self.__speciesTree.coalescent(
-            distanceAboveRoot=10000)
+            distanceAboveRoot=float('inf'))
         print(coalescentProcess)

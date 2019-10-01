@@ -11,9 +11,10 @@ class SpeciesTree:
     """
 
     def __init__(self, randomState):
+        self.__randomState = randomState
+
         self.__treeTable = None
         self.__lambdaCoalescent = None
-        self.__randomState = randomState
 
     @property
     def treeTable(self):
@@ -24,10 +25,9 @@ class SpeciesTree:
         return self.__lambdaCoalescent
 
     def setLambdaCoalescent(self, parameter):
-        self.__lambdaCoalescent = \
-            self.__randomState.gamma(
-                shape=parameter['shape'], scale=parameter['scale'],
-                size=len(self.getLeaves()))
+        self.__lambdaCoalescent = self.__randomState.gamma(
+            shape=parameter['shape'], scale=parameter['scale'],
+            size=len(self.getLeaves()))
 
     def getSkbioTree(self):
         return self.__treeTable.skbioTree
@@ -83,12 +83,9 @@ class SpeciesTree:
         while True:
             for leaf in oldLeaves:
                 if leaf == root.id:
-                    cladeSetIntoRoot = \
-                        self.__coalescentRecurse(
-                            id=root.id, 
-                            distance=distanceAboveRoot,
-                            cladeSet=cladeSet, 
-                            coalescentProcess=coalescentProcess)
+                    cladeSetIntoRoot = self.__coalescentRecurse(
+                        id=root.id, distance=distanceAboveRoot,
+                        cladeSet=cladeSet, coalescentProcess=coalescentProcess)
                     break
                 else:
                     parent = self.getNodeById(leaf).parent
@@ -133,6 +130,7 @@ class SpeciesTree:
                 if newLeaf not in tempNewLeaves:
                     tempNewLeaves.append(newLeaf)
             oldLeaves = tempNewLeaves.copy()
+
             newLeaves = []
             labelled = {}
             for node in nodes:
@@ -173,9 +171,9 @@ class SpeciesTree:
                         + [e for e in cladeSet[id] if e not in couple]
 
                     # save process
-                    coalescentProcess[str(id)].append({
-                        'from_set': temp_set,
-                        'to_set': cladeSet[id].copy(),
+                    coalescentProcess[id].append({
+                        'fromSet': temp_set,
+                        'toSet': cladeSet[id].copy(),
                         'distance': fakeDistance
                     })
                 else:
@@ -221,3 +219,38 @@ class SpeciesTree:
         splited = string.split('*')[:-1]
         splited = sorted([int(e) for e in splited])
         return [str(e) + '*' for e in splited]
+
+    def __find_ancestors(self, leaf_name, coalescent_process):
+        """
+        find the ancestors of the given leaf in reverse time order
+        """
+        sequence = []
+        for speciesNodeId, v in coalescent_process.items():
+            branch_distance = 0.0
+            for elem in v:
+                branch_distance += elem['distance']
+                if (leaf_name in elem['fromSet'] 
+                    and leaf_name not in elem['toSet']):
+                    for e in elem['toSet']:
+                        if (len(leaf_name) < len(e) 
+                            and self.star_in_set(leaf_name, e)):
+                            coal_height = super().distance_to_leaf(
+                                node_id=speciesNodeId, branch_distance=branch_distance)
+                            pair = (e, coal_height)
+                            sequence.append(pair)
+                            sequence += self.find_ancestors(
+                                leaf_name=e, 
+                                coalescent_process=coalescent_process)
+        return sequence
+
+    def time_sequences(self, coalescent_process):
+        """
+        backward-in-time coalescent process modified data structure 
+        for constructing the coalescent tree in newick format
+        """
+        time_sequences = {}
+        for leaf in self.leaves:
+            time_sequences[str(leaf)] = self.find_ancestors(
+                leaf_name=str(leaf) + '*', 
+                coalescent_process=coalescent_process)
+        return time_sequences
