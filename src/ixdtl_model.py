@@ -51,6 +51,9 @@ class IxDTLModel:
         # construct the original haplotype tree according to the species tree
         self.constructOriginalHaplotypeTree()
 
+        # run dtl process
+        events = self.__haplotypeTree.runDTLProcess()
+
     def setParameters(self, coalescent, duplication, transfer, loss, 
         hemiplasy, recombination):
         if not coalescent:
@@ -98,7 +101,7 @@ class IxDTLModel:
             recombination=self.__parameters['recombination'])
         self.__haplotypeTree.setHemiplasy(
             hemiplasy=self.__parameters['hemiplasy'])
-            
+
         print('original haplotype tree:')
         print(self.__haplotypeTree)
         print()

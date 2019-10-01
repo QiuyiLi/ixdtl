@@ -24,6 +24,30 @@ class HaplotypeTree:
     def __str__(self):
         return str(self.__treeTable)
 
+    def getSkbioTree(self):
+        return self.__treeTable.skbioTree
+
+    def getNodeById(self, id):
+        return self.__treeTable.getEntryById(id)
+
+    def getNodes(self):
+        return self.__treeTable.table
+
+    def getNodeByName(self, name):
+        return self.__treeTable.getEntryByName(name)
+
+    def getRoot(self):
+        return self.__treeTable.root
+
+    def getLeaves(self):
+        return self.__treeTable.leaves
+
+    def getTreeHeight(self):
+        return self.__treeTable.treeHeight
+
+    def getDistanceToLeaf(self, nodeId, branchDistance):
+        return self.__treeTable.distanceToLeaf(nodeId, branchDistance)
+
     def initialize(self, locusTree):
         coalescentProcess, cladeSetIntoRoot = locusTree.coalescent(
             distanceAboveRoot=float('inf'))
@@ -66,6 +90,9 @@ class HaplotypeTree:
     def readFromSkbioTree(self, skbioTree):
         self.__treeTable = TreeTable()
         self.__treeTable.createFromSkbioTree(skbioTree)
+
+    def runDTLProcess(self):
+        pass
 
     def __createSkbioTreeRecurse(self, skbioTree, timeSequences):
         # one node (leaf)

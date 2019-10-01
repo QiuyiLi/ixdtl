@@ -113,7 +113,7 @@ def readCommand(argv):
 
 
 def runModel(**args):
-    model = IxDTLModel(1)
+    model = IxDTLModel(seed=1)
     model.run(**args)
 
 

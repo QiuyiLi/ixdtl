@@ -230,6 +230,20 @@ class SpeciesTree:
         splited = sorted([int(e) for e in splited])
         return [str(e) + '*' for e in splited]
 
+    def getTimeSequences(self, coalescentProcess):
+        """
+        backward-in-time coalescent process modified data structure 
+        for constructing the coalescent tree in newick format
+        """
+        timeSequences = {}
+        for leaf in self.getLeaves():
+            sequence = self.__findAncestors(
+                leafName=str(leaf.id) + '*', 
+                coalescentProcess=coalescentProcess)
+            if sequence:
+                timeSequences[leaf.id] = sequence
+        return timeSequences
+
     def __findAncestors(self, leafName, coalescentProcess):
         """
         find the ancestors of the given leaf in reverse time order
@@ -253,19 +267,3 @@ class SpeciesTree:
                                 leafName=element, 
                                 coalescentProcess=coalescentProcess)
         return sequence
-
-    def getTimeSequences(self, coalescentProcess):
-        """
-        backward-in-time coalescent process modified data structure 
-        for constructing the coalescent tree in newick format
-        """
-        timeSequences = {}
-        for leaf in self.getLeaves():
-            sequence = self.__findAncestors(
-                leafName=str(leaf.id) + '*', 
-                coalescentProcess=coalescentProcess)
-            if sequence:
-                timeSequences[leaf.id] = sequence
-        return timeSequences
-
-    
