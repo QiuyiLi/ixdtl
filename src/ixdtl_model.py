@@ -6,8 +6,6 @@ from .exception import *
 
 class IxDTLModel:
 
-    geneTree = None
-
     def __init__(self, seed=0):
         self.__randomState = np.random.RandomState(seed)
 
@@ -56,15 +54,12 @@ class IxDTLModel:
         # run dtl process
         events = self.haplotypeTree.dtlProcess(distance=0)
 
-        # print(self.haplotypeTree.getSkbioTree().ascii_art())
+        # run dt subtree
+        geneTree = self.haplotypeTree.dtSubtree(
+            coalescentProcess=self.haplotypeTree.coalescentProcess, 
+            events=events, haplotypeTree=self.haplotypeTree)
 
-        # self.haplotypeTree.getSkbioTree().remove_deleted(lambda x: x.name == '1*2*')
-
-        # print(self.haplotypeTree.getSkbioTree().ascii_art())
-
-        # self.haplotypeTree.getSkbioTree().prune()
-
-        # print(self.haplotypeTree.getSkbioTree().ascii_art())
+        print(geneTree.getSkbioTree().ascii_art())
 
 
 
@@ -120,8 +115,6 @@ class IxDTLModel:
             recombination=self.parameters['recombination'])
         self.haplotypeTree.setHemiplasy(
             hemiplasy=self.parameters['hemiplasy'])
-
-        IxDTLModel.geneSkbioTree = self.haplotypeTree.getSkbioTree().deepcopy()
 
         print('original haplotype tree:')
         print(self.haplotypeTree)

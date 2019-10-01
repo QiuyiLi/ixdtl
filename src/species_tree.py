@@ -29,10 +29,16 @@ class SpeciesTree:
     @property
     def treeTable(self):
         return self.__treeTable
+    @treeTable.setter
+    def treeTable(self, treeTable):
+        self.__treeTable = treeTable
 
     @property
     def coalescentRate(self):
         return self.__coalescentRate
+    @coalescentRate.setter
+    def coalescentRate(self, coalescentRate):
+        self.__coalescentRate = coalescentRate
 
     def setCoalescentRate(self, coalescentPrmt):
         self.__coalescentRate = self.randomState.gamma(
@@ -211,7 +217,7 @@ class SpeciesTree:
                 indices.append(int(index))
         return mean(self.coalescentRate[indices])
 
-    def __starInSet(self, target, clade):
+    def _starInSet(self, target, clade):
         """
         checking whether a given clade is in the target set
         modified for the "*" representation
@@ -258,7 +264,7 @@ class SpeciesTree:
                     and leafName not in mergingSet['toSet']):
                     for element in mergingSet['toSet']:
                         if (len(leafName) < len(element) 
-                            and self.__starInSet(leafName, element)):
+                            and self._starInSet(leafName, element)):
                             coalescentHeight = self.getDistanceToLeaf(
                                 nodeId=speciesNodeId, 
                                 branchDistance=branchDistance)

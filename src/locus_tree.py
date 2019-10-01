@@ -1,10 +1,14 @@
 from .species_tree import *
+from .tree_table import *
 
 class LocusTree(SpeciesTree):
 
+    def __init__(self, randomState):
+        super().__init__(randomState=randomState)
+
     def initialize(self, nodes, skbioTree):
-        self.__tableTable = TreeTable()
-        self.__tableTable.createFromEntries(
+        self.treeTable = TreeTable()
+        self.treeTable.createFromEntries(
             entries=nodes, skbioTree=skbioTree)
 
     def boundedCoalescent(self, distanceAboveRoot):
@@ -29,10 +33,10 @@ class LocusTree(SpeciesTree):
                 fromSet = []
                 toSet = []
                 for clade in mergingSet['fromSet']:
-                    if self.__starInSet(target=clade, clade=chosenGene):
+                    if self._starInSet(target=clade, clade=chosenGene):
                         fromSet.append(clade)
                 for clade in mergingSet['toSet']:
-                    if self.__starInSet(target=clade, clade=chosenGene):
+                    if self._starInSet(target=clade, clade=chosenGene):
                         toSet.append(clade)
                 if toSet:
                     selectedCoalescentProcess[speciesNodeId].append({
