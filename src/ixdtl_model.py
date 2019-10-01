@@ -88,5 +88,8 @@ class IxDTLModel:
     def constructOriginalHaplotypeTree(self):
         self.__haplotypeTree = HaplotypeTree(self.__randomState)
         self.__haplotypeTree.initialize(locusTree=self.__speciesTree)
+        print('original haplotype tree:')
+        print(self.__haplotypeTree)
+        print()
         
         

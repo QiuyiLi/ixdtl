@@ -37,11 +37,8 @@ class HaplotypeTree:
         print(timeSequences)
         print()
 
-        # skbioTree = self.createSkbioTree(timeSequences)
-        # print(skbioTree.ascii_art())
-
-        skbioTree = skbio.tree.Node()
-        readFromSkbioTree(skbioTree)
+        skbioTree = self.createSkbioTree(timeSequences)
+        self.readFromSkbioTree(skbioTree)
 
     def createSkbioTree(self, timeSequences):
         skbioTree = skbio.tree.TreeNode()   # root node
