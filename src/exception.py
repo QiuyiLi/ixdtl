@@ -1,2 +1,2 @@
-class HIDTLError(Exception):
+class IxDTLError(Exception):
     pass

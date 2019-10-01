@@ -1,5 +1,5 @@
 import sys
-from src.hidtl_model import *
+from src.ixdtl_model import *
 
 
 def default(str):
@@ -20,15 +20,15 @@ def parseDistributionArgs(str):
 
 def readCommand(argv):
     """
-    Processes the command used to run HIDTLModel from the command line.
+    Processes the command used to run IxDTLModel from the command line.
     """
     from optparse import OptionParser
     usageStr = """
-    USAGE:      python hidtl.py <options>
-    EXAMPLES:   (1) python hidtl.py
+    USAGE:      python ixdtl.py <options>
+    EXAMPLES:   (1) python ixdtl.py
                     - runs a model
-                (2) python hidtl.py --input data/species_tree.txt
-                OR  python hidtl.py -i data/species_tree.txt
+                (2) python ixdtl.py --input data/species_tree.txt
+                OR  python ixdtl.py -i data/species_tree.txt
     """
     parser = OptionParser(usageStr, add_help_option=False)
 
@@ -95,22 +95,22 @@ def readCommand(argv):
 
 
 def runModel(**args):
-    model = HIDTLModel(1)
+    model = IxDTLModel(1)
     model.run(**args)
 
 
 if __name__ == '__main__':
     """
-    The hidtl function called when hidtl.py is run
+    The ixdtl function called when ixdtl.py is run
     from the command line:
 
-    > python hidtl.py
+    > python ixdtl.py
 
     See the usage string for more details.
 
-    > python hidtl.py --help
+    > python ixdtl.py --help
     """
-    args = readCommand(sys.argv[1:])  # Get hidtl components based on input
+    args = readCommand(sys.argv[1:])  # Get ixdtl components based on input
     runModel(**args)
 
     pass
