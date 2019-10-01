@@ -14,7 +14,7 @@ class HaplotypeTree:
         self.__randomState = randomState
 
         self.__treeTable = None
-        self.__lambdaRates = {}
+        self.__eventRates = {}
         self.__recombination = None
         self.__hemiplasy = None
 
@@ -39,6 +39,17 @@ class HaplotypeTree:
 
         skbioTree = self.createSkbioTree(timeSequences)
         self.readFromSkbioTree(skbioTree)
+
+    def setEventRates(self, duplicationRate, transferRate, lossRate):
+        self.__eventRates['d'] = duplicationRate
+        self.__eventRates['t'] = transferRate
+        self.__eventRates['l'] = lossRate
+
+    def setRecombination(self, recombination):
+        self.__recombination = recombination
+
+    def setHemiplasy(self, hemiplasy):
+        self.__hemiplasy = hemiplasy
 
     def createSkbioTree(self, timeSequences):
         skbioTree = skbio.tree.TreeNode()   # root node

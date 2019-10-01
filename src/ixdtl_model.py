@@ -80,7 +80,9 @@ class IxDTLModel:
     def readSpeciesTree(self, path):
         self.__speciesTree = SpeciesTree(self.__randomState)
         self.__speciesTree.readFromNewickFile(path)
-        self.__speciesTree.setLambdaCoalescent(self.__parameters['coalescent'])
+        self.__speciesTree.setLambdaCoalescent(
+            parameter=self.__parameters['coalescent'])
+            
         print('species tree:')
         print(self.__speciesTree)
         print()
@@ -88,6 +90,15 @@ class IxDTLModel:
     def constructOriginalHaplotypeTree(self):
         self.__haplotypeTree = HaplotypeTree(self.__randomState)
         self.__haplotypeTree.initialize(locusTree=self.__speciesTree)
+        self.__haplotypeTree.setEventRates(
+            duplicationRate=self.__parameters['duplication'],
+            transferRate=self.__parameters['transfer'],
+            lossRate=self.__parameters['loss'])
+        self.__haplotypeTree.setRecombination(
+            recombination=self.__parameters['recombination'])
+        self.__haplotypeTree.setHemiplasy(
+            hemiplasy=self.__parameters['hemiplasy'])
+            
         print('original haplotype tree:')
         print(self.__haplotypeTree)
         print()
