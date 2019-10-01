@@ -52,7 +52,9 @@ class IxDTLModel:
         self.constructOriginalHaplotypeTree()
 
         # run dtl process
-        events = self.__haplotypeTree.runDTLProcess()
+        events = self.__haplotypeTree.dtlProcess()
+
+        print(events)
 
     def setParameters(self, coalescent, duplication, transfer, loss, 
         hemiplasy, recombination):
@@ -81,22 +83,24 @@ class IxDTLModel:
         self.__parameters['recombination'] = recombination
 
     def readSpeciesTree(self, path):
-        self.__speciesTree = SpeciesTree(self.__randomState)
-        self.__speciesTree.readFromNewickFile(path)
+        self.__speciesTree = SpeciesTree(randomState=self.__randomState)
+        self.__speciesTree.readFromNewickFile(path=path)
         self.__speciesTree.setCoalescentRate(
-            parameter=self.__parameters['coalescent'])
+            coalescentPrmt=self.__parameters['coalescent'])
             
         print('species tree:')
         print(self.__speciesTree)
         print()
             
     def constructOriginalHaplotypeTree(self):
-        self.__haplotypeTree = HaplotypeTree(self.__randomState)
+        self.__haplotypeTree = HaplotypeTree(
+            randomState=self.__randomState, speciesTree=self.__speciesTree)
         self.__haplotypeTree.initialize(locusTree=self.__speciesTree)
+
         self.__haplotypeTree.setEventRates(
-            duplicationRate=self.__parameters['duplication'],
-            transferRate=self.__parameters['transfer'],
-            lossRate=self.__parameters['loss'])
+            duplicationPrmt=self.__parameters['duplication'],
+            transferPrmt=self.__parameters['transfer'],
+            lossPrmt=self.__parameters['loss'])
         self.__haplotypeTree.setRecombination(
             recombination=self.__parameters['recombination'])
         self.__haplotypeTree.setHemiplasy(

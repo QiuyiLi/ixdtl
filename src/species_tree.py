@@ -34,9 +34,9 @@ class SpeciesTree:
     def coalescentRate(self):
         return self.__coalescentRate
 
-    def setCoalescentRate(self, parameter):
+    def setCoalescentRate(self, coalescentPrmt):
         self.__coalescentRate = self.randomState.gamma(
-            shape=parameter['shape'], scale=parameter['scale'],
+            shape=coalescentPrmt['shape'], scale=coalescentPrmt['scale'],
             size=len(self.getLeaves()))
 
     def getSkbioTree(self):
@@ -179,9 +179,7 @@ class SpeciesTree:
                 if len(cladeSet[id]) >= 2:
                     temp_set = sorted(cladeSet[id])
                     couple = self.randomState.choice(
-                        cladeSet[id], 
-                        size=2, 
-                        replace=False)
+                        cladeSet[id], size=2, replace=False)
                     cladeSet[id] = [''.join(self.__starSorted(couple))] \
                         + [e for e in cladeSet[id] if e not in couple]
 
@@ -200,9 +198,7 @@ class SpeciesTree:
                 # use recursion to simulate the case when there is
                 # more than one coalescent events in the branch
                 self.__coalescentRecurse(
-                    id=id, 
-                    distance=distance,
-                    cladeSet=cladeSet, 
+                    id=id, distance=distance, cladeSet=cladeSet, 
                     coalescentProcess=coalescentProcess)
 
         return cladeSet[id]

@@ -45,7 +45,7 @@ def readCommand(argv):
         help=default(
             'the parameters of the gamma distribution for coalescent, '
             'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-        default='shape=0.5,scale=0.5')
+        default='shape=0.7,scale=0.8')
 
     parser.add_option(
         '-d', '--duplicationArgs', dest='duplicationArgs',
@@ -66,7 +66,7 @@ def readCommand(argv):
         help=default(
             'the parameters of the gamma distribution for loss event, '
             'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-        default='shape=1,scale=1')
+        default='shape=0.5,scale=0.5')
 
     parser.add_option(
         '-h', '--hemiplasy', type='int', dest='hemiplasy',
@@ -113,7 +113,7 @@ def readCommand(argv):
 
 
 def runModel(**args):
-    model = IxDTLModel(seed=1)
+    model = IxDTLModel(seed=14)
     model.run(**args)
 
 
