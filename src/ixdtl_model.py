@@ -53,6 +53,9 @@ class IxDTLModel:
 
         # run dtl process
         events = self.haplotypeTree.dtlProcess(distance=0)
+        print('events:')
+        print(events)
+        print()
 
         # run dt subtree
         geneTree = self.haplotypeTree.dtSubtree(
@@ -118,6 +121,7 @@ class IxDTLModel:
 
         print('original haplotype tree:')
         print(self.haplotypeTree)
+        print(self.haplotypeTree.getSkbioTree().ascii_art())
         print()
         
         

@@ -147,7 +147,6 @@ class TreeTable:
 
     def createFromSkbioTree(self, skbioTree, rename=True):
         if rename:
-            print("RENAME!")
             # rename all tree nodes
             self.__renameTreeNodes(skbioTree)
 
