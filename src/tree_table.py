@@ -87,6 +87,7 @@ class TreeTable:
         self.__tableDictName = {}
         self.__root = None
         self.__leaves = []
+        self.__treeHeight = -1
 
     def __repr__(self):
         string = '<TreeTable, \n'
@@ -117,6 +118,10 @@ class TreeTable:
     @property
     def leaves(self):
         return self.__leaves
+
+    @property
+    def treeHeight(self):
+        return self.__treeHeight
 
     def getEntryById(self, id):
         return self.__tableDictId[id]
@@ -179,6 +184,9 @@ class TreeTable:
         # assign fake ids in post order
         self.__assignFakeIds(skbioTree)
 
+        # calculate tree height (any leaf node to the root)
+        self.__treeHeight = self.__distanceToRoot(self.leaves[0].id)
+
         self.__skbioTree = skbioTree
 
         return skbioTree
@@ -187,7 +195,6 @@ class TreeTable:
         f = open(path)
         skbioTree = skbio.read(f, format="newick", into=skbio.tree.TreeNode)
         f.close()
-
         return self.createFromSkbioTree(skbioTree)
 
     def __renameTreeNodes(self, skbioTree):
@@ -206,3 +213,25 @@ class TreeTable:
             entry = self.getEntryById(treeNode.id)
             entry.fakeId = index
             index += 1
+
+    def __distanceToRoot(self, nodeId):
+        """
+        find the distance of a given node to the root 
+        needed when finding the walking distance
+        """
+        if (self.getEntryById(nodeId).parent < 0 or 
+            nodeId == self.root.id):
+            return 0
+        else:
+            distanceToParent = self.getEntryById(nodeId).distanceToParent
+            parent = self.getEntryById(nodeId).parent
+            return distanceToParent + self.__distanceToRoot(parent)
+
+    def distanceToLeaf(self, nodeId, branchDistance):
+        """
+        given a coalescent event happening at "branchDistance" above 
+        a speices node with "nodeId" find the distance of this event 
+        to the bottom of the tree needed when assigning ids to the 
+        coalescent tree
+        """
+        return branchDistance + (self.treeHeight - self.__distanceToRoot(nodeId))

@@ -84,3 +84,8 @@ class IxDTLModel:
         coalescentProcess, cladeSetIntoRoot = self.__speciesTree.coalescent(
             distanceAboveRoot=float('inf'))
         print(coalescentProcess)
+
+        timeSequences = self.__speciesTree.getTimeSequences(
+            coalescentProcess=coalescentProcess)
+        print(timeSequences)
+        

@@ -47,6 +47,12 @@ class SpeciesTree:
     def getLeaves(self):
         return self.__treeTable.leaves
 
+    def getTreeHeight(self):
+        return self.__treeTable.treeHeight
+
+    def getDistanceToLeaf(self, nodeId, branchDistance):
+        return self.__treeTable.distanceToLeaf(nodeId, branchDistance)
+
     def readFromNewickFile(self, path):
         self.__treeTable = TreeTable()
         self.__treeTable.createFromNewickFile(path)
@@ -220,37 +226,40 @@ class SpeciesTree:
         splited = sorted([int(e) for e in splited])
         return [str(e) + '*' for e in splited]
 
-    def __find_ancestors(self, leaf_name, coalescent_process):
+    def __findAncestors(self, leafName, coalescentProcess):
         """
         find the ancestors of the given leaf in reverse time order
         """
         sequence = []
-        for speciesNodeId, v in coalescent_process.items():
-            branch_distance = 0.0
-            for elem in v:
-                branch_distance += elem['distance']
-                if (leaf_name in elem['fromSet'] 
-                    and leaf_name not in elem['toSet']):
-                    for e in elem['toSet']:
-                        if (len(leaf_name) < len(e) 
-                            and self.star_in_set(leaf_name, e)):
-                            coal_height = super().distance_to_leaf(
-                                node_id=speciesNodeId, branch_distance=branch_distance)
-                            pair = (e, coal_height)
+        for speciesNodeId, mergingSets in coalescentProcess.items():
+            branchDistance = 0.0
+            for mergingSet in mergingSets:
+                branchDistance += mergingSet['distance']
+                if (leafName in mergingSet['fromSet'] 
+                    and leafName not in mergingSet['toSet']):
+                    for element in mergingSet['toSet']:
+                        if (len(leafName) < len(element) 
+                            and self.__starInSet(leafName, element)):
+                            coalescentHeight = self.getDistanceToLeaf(
+                                nodeId=speciesNodeId, 
+                                branchDistance=branchDistance)
+                            pair = (element, coalescentHeight)
                             sequence.append(pair)
-                            sequence += self.find_ancestors(
-                                leaf_name=e, 
-                                coalescent_process=coalescent_process)
+                            sequence += self.__findAncestors(
+                                leafName=element, 
+                                coalescentProcess=coalescentProcess)
         return sequence
 
-    def time_sequences(self, coalescent_process):
+    def getTimeSequences(self, coalescentProcess):
         """
         backward-in-time coalescent process modified data structure 
         for constructing the coalescent tree in newick format
         """
-        time_sequences = {}
-        for leaf in self.leaves:
-            time_sequences[str(leaf)] = self.find_ancestors(
-                leaf_name=str(leaf) + '*', 
-                coalescent_process=coalescent_process)
-        return time_sequences
+        timeSequences = {}
+        for leaf in self.getLeaves():
+            timeSequences[leaf.id] = self.__findAncestors(
+                leafName=str(leaf.id) + '*', 
+                coalescentProcess=coalescentProcess)
+        return timeSequences
+
+    
