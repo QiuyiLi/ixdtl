@@ -374,7 +374,7 @@ class HaplotypeTree:
         diff = set(a).difference(set(b))
         return ''.join([e + '*' for e in sorted(list(diff))])
 
-    def dtSubtree(self, coalescentProcess, events, haplotypeTree):
+    def dtSubtree(self, coalescentProcess, events, haplotypeTree, level):
         """
         1. find all the duplication points on the coalescent tree 
         2. find the corresponding duplicaion subtree
@@ -404,29 +404,43 @@ class HaplotypeTree:
                     speciesId=None)
                 newHaplotypeTree = self.__dtSubtreeRecurse(
                     event=event, newLocusRootId=speciesId, 
-                    distanceAboveRoot=distanceAboveSpeciesNode)
+                    distanceAboveRoot=distanceAboveSpeciesNode, level=level)
+
+                for node in newHaplotypeTree.getSkbioTree().traverse():
+                    node.name = node.name + '_' + str(level)
+                
+                print('new haplotype tree:')
+                print(newHaplotypeTree.getSkbioTree().ascii_art())
 
                 # insert newHaplotypeTree
+                print('haplotype tree before:')
                 print(haplotypeTree.getSkbioTree().ascii_art())
-                geneNode = haplotypeTree.getSkbioTree().find(event['geneNodeName'])
+
+                geneNodeName = event['geneNodeName']
+                geneNode = haplotypeTree.getSkbioTree().find(geneNodeName)
                 # 1. create new node
                 newNode = skbio.tree.TreeNode()
-                # 2. change parent
-                geneNode.parent = newNode
-                newHaplotypeTree.getSkbioTree().parent = newNode
-                # 3. change length
-                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
-                newNode.length = geneNode.length - event['distanceToGeneNode']
-                geneNode.length = event['distanceToGeneNode']
-                # 4. change children
+                newNode.name = 'c' + '_' + str(level)
+                # 2. change children
                 newNode.children = [geneNode, newHaplotypeTree.getSkbioTree()]
                 if geneNode.parent:
                     for i in range(len(geneNode.parent.children)):
                         if geneNode.parent.children[i] == geneNode:
                             geneNode.parent.children[i] = newNode
                             break
-                else:
+                # 3. change parent
+                geneNode.parent = newNode
+                newHaplotypeTree.getSkbioTree().parent = newNode
+                # 4. change length
+                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
+                newNode.length = geneNode.length - event['distanceToGeneNode']
+                geneNode.length = event['distanceToGeneNode']
+                
+                # check root
+                if haplotypeTree.getSkbioTree() == geneNode:
                     haplotypeTree.setSkbioTree(newNode)
+                print('haplotype tree after:')
+                print(haplotypeTree.getSkbioTree().ascii_art())
 
 
                 # if coalescentProcess:
@@ -460,28 +474,43 @@ class HaplotypeTree:
                 distanceAboveTarget = event['eventHeight'] - targetHeight
                 newHaplotypeTree = self.__dtSubtreeRecurse(
                     event=event, newLocusRootId=transferTargetId, 
-                    distanceAboveRoot=distanceAboveTarget)
+                    distanceAboveRoot=distanceAboveTarget, level=level)
+                
+                for node in newHaplotypeTree.getSkbioTree().traverse():
+                    node.name = node.name + '_' + str(level)
+                
+                print('new haplotype tree:')
+                print(newHaplotypeTree.getSkbioTree().ascii_art())
 
                 # insert newHaplotypeTree
-                geneNode = haplotypeTree.getSkbioTree().find(event['geneNodeName'])
+                print('haplotype tree before:')
+                print(haplotypeTree.getSkbioTree().ascii_art())
+                
+                geneNodeName = event['geneNodeName']
+                geneNode = haplotypeTree.getSkbioTree().find(geneNodeName)
                 # 1. create new node
                 newNode = skbio.tree.TreeNode()
-                # 2. change parent
-                geneNode.parent = newNode
-                newHaplotypeTree.getSkbioTree().parent = newNode
-                # 3. change length
-                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
-                newNode.length = geneNode.length - event['distanceToGeneNode']
-                geneNode.length = event['distanceToGeneNode']
-                # 4. change children
+                newNode.name = 'c' + '_' + str(level)
+                # 2. change children
                 newNode.children = [geneNode, newHaplotypeTree.getSkbioTree()]
                 if geneNode.parent:
                     for i in range(len(geneNode.parent.children)):
                         if geneNode.parent.children[i] == geneNode:
                             geneNode.parent.children[i] = newNode
                             break
-                else:
+                # 3. change parent
+                geneNode.parent = newNode
+                newHaplotypeTree.getSkbioTree().parent = newNode
+                # 4. change length
+                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
+                newNode.length = geneNode.length - event['distanceToGeneNode']
+                geneNode.length = event['distanceToGeneNode']
+                
+                # check root
+                if haplotypeTree.getSkbioTree() == geneNode:
                     haplotypeTree.setSkbioTree(newNode)
+                print('haplotype tree after:')
+                print(haplotypeTree.getSkbioTree().ascii_art())
 
             elif (event['type'] == 'loss'):
                 # index = Utility.increment()
@@ -491,14 +520,17 @@ class HaplotypeTree:
                 # f = open(os.path.join(path, file_name), 'w')
                 # f.write(str(event['geneNodeName']) + ',' + str(event['distance_to_gene_node']) + ',' + str(index))
                 # f.close()
-                haplotypeSkbioTree = haplotypeTree.getSkbioTree()
-                haplotypeSkbioTree.remove_deleted(
-                    lambda x: x.name == event['geneNodeName'])
-                haplotypeSkbioTree.prune()
+
+                # cut tree bug here...
+                # haplotypeSkbioTree = haplotypeTree.getSkbioTree()
+                # haplotypeSkbioTree.remove_deleted(
+                #     lambda x: x.name == event['geneNodeName'])
+                # haplotypeSkbioTree.prune()
+                _
 
         return haplotypeTree
 
-    def __dtSubtreeRecurse(self, event, newLocusRootId, distanceAboveRoot):
+    def __dtSubtreeRecurse(self, event, newLocusRootId, distanceAboveRoot, level):
         if (event['type'] == 'duplication' or event['type'] == 'transfer'): 
             # nodeId = target_id
             speciesSkbioTree = self.speciesTree.getSkbioTree()
@@ -531,6 +563,10 @@ class HaplotypeTree:
             newHaplotypeTree.getSkbioTree().length = rootLength
             newHaplotypeTreeEvents = newHaplotypeTree.dtlProcess(
                 event=event, distance=rootLength)
+
+            print('new haplotype tree events:')
+            print(newHaplotypeTreeEvents)
+            print()
             
             # index = Utility.increment()
             # event['index'] = index
@@ -544,8 +580,8 @@ class HaplotypeTree:
 
             newHaplotypeTree.dtSubtree(
                 coalescentProcess=locusTreeCoalescentProcess, 
-                events=newHaplotypeTreeEvents, 
-                haplotypeTree=self)
+                events=newHaplotypeTreeEvents, haplotypeTree=self, 
+                level=level + 1)
             return newHaplotypeTree
         # if (event['type'] == 'duplication'):
         #     Debug.log(header='\n\n\n' + '='*80 + '\nCurrent event:' + '\n',

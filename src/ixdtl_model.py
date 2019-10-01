@@ -60,7 +60,7 @@ class IxDTLModel:
         # run dt subtree
         geneTree = self.haplotypeTree.dtSubtree(
             coalescentProcess=self.haplotypeTree.coalescentProcess, 
-            events=events, haplotypeTree=self.haplotypeTree)
+            events=events, haplotypeTree=self.haplotypeTree, level=0)
 
         print(geneTree.getSkbioTree().ascii_art())
 
