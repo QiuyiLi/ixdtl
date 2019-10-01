@@ -261,9 +261,11 @@ class SpeciesTree:
         """
         timeSequences = {}
         for leaf in self.getLeaves():
-            timeSequences[leaf.id] = self.__findAncestors(
+            sequence = self.__findAncestors(
                 leafName=str(leaf.id) + '*', 
                 coalescentProcess=coalescentProcess)
+            if sequence:
+                timeSequences[leaf.id] = sequence
         return timeSequences
 
     

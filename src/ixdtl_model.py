@@ -1,16 +1,18 @@
 import numpy as np
 from .species_tree import *
+from .haplotype_tree import *
 from .exception import *
 
 
 class IxDTLModel:
 
     def __init__(self, seed=0):
+        self.__randomState = np.random.RandomState(seed)
+
         self.__speciesTree = None
         self.__haplotypeTree = None
         self.__locusTrees = []
         self.__parameters = {}
-        self.__randomState = np.random.RandomState(seed)
 
     @property
     def speciesTree(self):
@@ -43,11 +45,11 @@ class IxDTLModel:
             hemiplasy=hemiplasy,
             recombination=recombination)
 
-        # create a species tree from input file
-        self.createSpeciesTree(inputFile)
+        # read a species tree from input file
+        self.readSpeciesTree(inputFile)
 
-        # create a haplotype tree according to the species tree
-        self.createHaplotypeTree()
+        # construct the original haplotype tree according to the species tree
+        self.constructOriginalHaplotypeTree()
 
     def setParameters(self, coalescent, duplication, transfer, loss, 
         hemiplasy, recombination):
@@ -75,7 +77,7 @@ class IxDTLModel:
             raise IxDTLError('missing recombination option')
         self.__parameters['recombination'] = recombination
 
-    def createSpeciesTree(self, path):
+    def readSpeciesTree(self, path):
         self.__speciesTree = SpeciesTree(self.__randomState)
         self.__speciesTree.readFromNewickFile(path)
         self.__speciesTree.setLambdaCoalescent(self.__parameters['coalescent'])
@@ -83,18 +85,8 @@ class IxDTLModel:
         print(self.__speciesTree)
         print()
             
-    def createHaplotypeTree(self):
-        coalescentProcess, cladeSetIntoRoot = self.__speciesTree.coalescent(
-            distanceAboveRoot=float('inf'))
-        print('coalescent process:')
-        print(coalescentProcess)
-        print()
-
-        timeSequences = self.__speciesTree.getTimeSequences(
-            coalescentProcess=coalescentProcess)
-        print('time sequences:')
-        print(timeSequences)
-        print()
-
+    def constructOriginalHaplotypeTree(self):
+        self.__haplotypeTree = HaplotypeTree(self.__randomState)
+        self.__haplotypeTree.initialize(locusTree=self.__speciesTree)
         
         
