@@ -32,33 +32,51 @@ def readCommand(argv):
     """
     parser = OptionParser(usageStr, add_help_option=False)
 
-    parser.add_option('--help', action='store_true',
-                      help='show this help message')
+    parser.add_option(
+        '--help', action='store_true', help='show this help message')
 
-    parser.add_option('-i', '--inputFile', dest='inputFile',
-                      help='the path to an input file of a species tree', metavar='INPUT_FILE')
-    parser.add_option('-c', '--coalescentArgs', dest='coalescentArgs',
-                      help=default('the parameters of the gamma distribution for coalescent, '
-                                   'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-                      default='shape=1,scale=1')
-    parser.add_option('-d', '--duplicationArgs', dest='duplicationArgs',
-                      help=default('the parameters of the gamma distribution for duplication event, '
-                                   'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-                      default='shape=1,scale=1')
-    parser.add_option('-t', '--transferArgs', dest='transferArgs',
-                      help=default('the parameters of the gamma distribution for transfer event, '
-                                   'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-                      default='shape=1,scale=1')
-    parser.add_option('-l', '--lossArgs', dest='lossArgs',
-                      help=default('the parameters of the gamma distribution for loss event, '
-                                   'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-                      default='shape=1,scale=1')
-    parser.add_option('-h', '--hemiplasy', type='int', dest='hemiplasy',
-                      help=default('hemiplasy option, 0 or 1'), metavar='HEMIPLASY',
-                      default=1)
-    parser.add_option('-r', '--recombination', type='int', dest='recombination',
-                      help=default('recombination option, 0 or 1'), metavar='RECOMBINATION',
-                      default=1)
+    parser.add_option(
+        '-i', '--inputFile', dest='inputFile',
+        help='the path to an input file of a species tree',
+        metavar='INPUT_FILE')
+
+    parser.add_option(
+        '-c', '--coalescentArgs', dest='coalescentArgs',
+        help=default(
+            'the parameters of the gamma distribution for coalescent, '
+            'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
+        default='shape=1,scale=1')
+
+    parser.add_option(
+        '-d', '--duplicationArgs', dest='duplicationArgs',
+        help=default(
+            'the parameters of the gamma distribution for duplication event, '
+            'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
+        default='shape=1,scale=1')
+        
+    parser.add_option(
+        '-t', '--transferArgs', dest='transferArgs',
+        help=default(
+            'the parameters of the gamma distribution for transfer event, '
+            'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
+        default='shape=1,scale=1')
+
+    parser.add_option(
+        '-l', '--lossArgs', dest='lossArgs',
+        help=default(
+            'the parameters of the gamma distribution for loss event, '
+            'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
+        default='shape=1,scale=1')
+
+    parser.add_option(
+        '-h', '--hemiplasy', type='int', dest='hemiplasy',
+        help=default('hemiplasy option, 0 or 1'), metavar='HEMIPLASY',
+        default=1)
+
+    parser.add_option(
+        '-r', '--recombination', type='int', dest='recombination',
+        help=default('recombination option, 0 or 1'), metavar='RECOMBINATION',
+        default=1)
 
     options, otherjunk = parser.parse_args(argv)
     if len(otherjunk) != 0:
