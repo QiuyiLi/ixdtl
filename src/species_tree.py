@@ -16,6 +16,12 @@ class SpeciesTree:
         self.__treeTable = None
         self.__lambdaCoalescent = None
 
+    def __repr__(self):
+        return str(self.__treeTable)
+
+    def __str__(self):
+        return str(self.__treeTable)
+
     @property
     def treeTable(self):
         return self.__treeTable
@@ -56,8 +62,6 @@ class SpeciesTree:
     def readFromNewickFile(self, path):
         self.__treeTable = TreeTable()
         self.__treeTable.createFromNewickFile(path)
-
-        print(self.__treeTable)
 
     def coalescent(self, distanceAboveRoot):
         """

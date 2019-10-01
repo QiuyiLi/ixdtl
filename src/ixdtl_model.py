@@ -79,13 +79,22 @@ class IxDTLModel:
         self.__speciesTree = SpeciesTree(self.__randomState)
         self.__speciesTree.readFromNewickFile(path)
         self.__speciesTree.setLambdaCoalescent(self.__parameters['coalescent'])
+        print('species tree:')
+        print(self.__speciesTree)
+        print()
             
     def createHaplotypeTree(self):
         coalescentProcess, cladeSetIntoRoot = self.__speciesTree.coalescent(
             distanceAboveRoot=float('inf'))
+        print('coalescent process:')
         print(coalescentProcess)
+        print()
 
         timeSequences = self.__speciesTree.getTimeSequences(
             coalescentProcess=coalescentProcess)
+        print('time sequences:')
         print(timeSequences)
+        print()
+
+        
         
