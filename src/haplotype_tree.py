@@ -24,6 +24,14 @@ class HaplotypeTree:
     def __str__(self):
         return str(self.__treeTable)
 
+    @property
+    def randomState(self):
+        return self.__randomState
+
+    @property
+    def treeTable(self):
+        return self.__treeTable
+
     def getSkbioTree(self):
         return self.__treeTable.skbioTree
 

@@ -14,7 +14,7 @@ class SpeciesTree:
         self.__randomState = randomState
 
         self.__treeTable = None
-        self.__lambdaCoalescent = None
+        self.__coalescentRate = None
 
     def __repr__(self):
         return str(self.__treeTable)
@@ -23,15 +23,19 @@ class SpeciesTree:
         return str(self.__treeTable)
 
     @property
+    def randomState(self):
+        return self.__randomState
+
+    @property
     def treeTable(self):
         return self.__treeTable
 
     @property
-    def lambdaCoalescent(self):
-        return self.__lambdaCoalescent
+    def coalescentRate(self):
+        return self.__coalescentRate
 
-    def setLambdaCoalescent(self, parameter):
-        self.__lambdaCoalescent = self.__randomState.gamma(
+    def setCoalescentRate(self, parameter):
+        self.__coalescentRate = self.randomState.gamma(
             shape=parameter['shape'], scale=parameter['scale'],
             size=len(self.getLeaves()))
 
@@ -162,9 +166,10 @@ class SpeciesTree:
             return cladeSet[id]
         else:
             # rate of coalescence
-            lambdaC = len(cladeSet[id]) \
-                      * self.__getLambdaCoalescentByCladeSet(cladeSet[id])
-            fakeDistance = self.__randomState.exponential(scale=1.0 / lambdaC)
+            coalescentRate = len(cladeSet[id]) \
+                      * self.__getCoalescentRateInAncestralBranch(cladeSet[id])
+            fakeDistance = self.randomState.exponential(
+                scale=1.0 / coalescentRate)
 
             # no coalescent event anymore in this branch
             if distance < fakeDistance:
@@ -173,7 +178,7 @@ class SpeciesTree:
                 # when coalescent, randomly merge 2 elements in the gene sets
                 if len(cladeSet[id]) >= 2:
                     temp_set = sorted(cladeSet[id])
-                    couple = self.__randomState.choice(
+                    couple = self.randomState.choice(
                         cladeSet[id], 
                         size=2, 
                         replace=False)
@@ -202,13 +207,13 @@ class SpeciesTree:
 
         return cladeSet[id]
 
-    def __getLambdaCoalescentByCladeSet(self, cladeSet):
+    def __getCoalescentRateInAncestralBranch(self, cladeSet):
         indices = []
         for clade in cladeSet:
             splited = clade.split('*')[:-1]
             for index in splited:
                 indices.append(int(index))
-        return mean(self.__lambdaCoalescent[indices])
+        return mean(self.coalescentRate[indices])
 
     def __starInSet(self, target, clade):
         """

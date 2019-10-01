@@ -83,7 +83,7 @@ class IxDTLModel:
     def readSpeciesTree(self, path):
         self.__speciesTree = SpeciesTree(self.__randomState)
         self.__speciesTree.readFromNewickFile(path)
-        self.__speciesTree.setLambdaCoalescent(
+        self.__speciesTree.setCoalescentRate(
             parameter=self.__parameters['coalescent'])
             
         print('species tree:')
