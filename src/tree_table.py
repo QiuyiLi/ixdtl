@@ -118,6 +118,9 @@ class TreeTable:
     @property
     def treeHeight(self):
         return self.__treeHeight
+    @treeHeight.setter
+    def treeHeight(self, treeHeight):
+        self.__treeHeight = treeHeight
 
     def getEntryById(self, id):
         return self.__tableDictId[id]

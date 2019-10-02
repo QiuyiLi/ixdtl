@@ -81,6 +81,8 @@ class HaplotypeTree:
 
     def getTreeHeight(self):
         return self.__treeTable.treeHeight
+    def setTreeHeight(self, treeHeight):
+        self.__treeTable.treeHeight = treeHeight
 
     def getDistanceToLeaf(self, nodeId, branchDistance):
         return self.__treeTable.distanceToLeaf(nodeId, branchDistance)
@@ -131,7 +133,7 @@ class HaplotypeTree:
                 skbioTree=skbioTree, timeSequences=timeSequences)
             skbioTree.length = None
         else:
-            skbioTree.name = str(next(iter(timeSequences))) + '*'
+            skbioTree.name = str(next(iter(timeSequences))) + '*' # speciesid*
             skbioTree.length = None
         return skbioTree
 
@@ -406,30 +408,39 @@ class HaplotypeTree:
 
                 geneNodeName = event['geneNodeName']
                 geneNode = haplotypeTree.getSkbioTree().find(geneNodeName)
+                geneNodeParent = geneNode.parent
                 # 1. create new node
                 newNode = skbio.tree.TreeNode()
-                newNode.name = 'd' + '_lv=' + str(level) + '_id=' + str(eventIndex)
+                newNode.name = 't' + '_lv=' + str(level) + '_id=' + str(eventIndex)
+                # 4. change length
+                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
+                print('newHaplotypeTree length: ' + str(newHaplotypeTree.getSkbioTree().length))
+                print('nht tree height: ' + str(newHaplotypeTree.getTreeHeight()))
+                newNode.length = 0 if not geneNodeParent else geneNode.length - event['distanceToGeneNode']
+                print('newNode.length: ' + str(newNode.length))
+                geneNode.length = event['distanceToGeneNode']
+                print('geneNode.length: ' + str(geneNode.length))
                 # 2. change children
                 newNode.children = [geneNode, newHaplotypeTree.getSkbioTree()]
-                if geneNode.parent:
+                if geneNodeParent:
                     for i in range(len(geneNode.parent.children)):
                         if geneNode.parent.children[i] == geneNode:
                             geneNode.parent.children[i] = newNode
                             break
                 # 3. change parent
-                tempParent = geneNode.parent
                 geneNode.parent = newNode
                 newHaplotypeTree.getSkbioTree().parent = newNode
-                # 4. change length
-                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
-                newNode.length = geneNode.length - event['distanceToGeneNode']
-                geneNode.length = event['distanceToGeneNode']
-                
+
                 # check root
-                if not tempParent:
+                if not geneNodeParent:
                     haplotypeTree.setSkbioTree(newNode)
+                    leaveNode = None
+                    for node in newNode.tips():
+                        leaveNode = node
+                        break
+                    haplotypeTree.setTreeHeight(newNode.distance(leaveNode))
                 else:
-                    newNode.parent = tempParent
+                    newNode.parent = geneNodeParent
 
                 print('haplotype tree after:')
                 print(haplotypeTree.getSkbioTree().ascii_art())
@@ -459,6 +470,14 @@ class HaplotypeTree:
                 # 1. create new node
                 newNode = skbio.tree.TreeNode()
                 newNode.name = 't' + '_lv=' + str(level) + '_id=' + str(eventIndex)
+                # 4. change length
+                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
+                print('newHaplotypeTree length: ' + str(newHaplotypeTree.getSkbioTree().length))
+                print('nht tree height: ' + str(newHaplotypeTree.getTreeHeight()))
+                newNode.length = 0 if not geneNodeParent else geneNode.length - event['distanceToGeneNode']
+                print('newNode.length: ' + str(newNode.length))
+                geneNode.length = event['distanceToGeneNode']
+                print('geneNode.length: ' + str(geneNode.length))
                 # 2. change children
                 newNode.children = [geneNode, newHaplotypeTree.getSkbioTree()]
                 if geneNodeParent:
@@ -469,14 +488,15 @@ class HaplotypeTree:
                 # 3. change parent
                 geneNode.parent = newNode
                 newHaplotypeTree.getSkbioTree().parent = newNode
-                # 4. change length
-                newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
-                newNode.length = geneNode.length - event['distanceToGeneNode']
-                geneNode.length = event['distanceToGeneNode']
                 
                 # check root
                 if not geneNodeParent:
                     haplotypeTree.setSkbioTree(newNode)
+                    leaveNode = None
+                    for node in newNode.tips():
+                        leaveNode = node
+                        break
+                    haplotypeTree.setTreeHeight(newNode.distance(leaveNode))
                 else:
                     newNode.parent = geneNodeParent
 
@@ -526,8 +546,10 @@ class HaplotypeTree:
 
             rootLength = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
             newHaplotypeTree.getSkbioTree().length = rootLength
+            
             newHaplotypeTreeEvents = newHaplotypeTree.dtlProcess(
                 event=event, distance=rootLength)
+            newHaplotypeTreeEvents.sort(reverse=True, key=lambda x: x['eventHeight'])
 
             print('new haplotype tree events level ' + str(level + 1) + ':')
             print(newHaplotypeTreeEvents)

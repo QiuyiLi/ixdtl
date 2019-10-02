@@ -55,6 +55,7 @@ class IxDTLModel:
 
         # run dtl process
         events = self.haplotypeTree.dtlProcess(distance=0)
+        events.sort(reverse=True, key=lambda x: x['eventHeight'])
         print('events:')
         print(events)
         print()
@@ -68,7 +69,7 @@ class IxDTLModel:
 
         rootTreeNode = geneTree.getSkbioTree()
         for node in geneTree.getSkbioTree().tips():
-            print(rootTreeNode.distance(node))
+            print(str(rootTreeNode.distance(node)) + ' ' + str(node.name))
 
 
 
