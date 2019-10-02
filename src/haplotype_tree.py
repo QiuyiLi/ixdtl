@@ -60,7 +60,6 @@ class HaplotypeTree:
 
     def getSkbioTree(self):
         return self.__treeTable.skbioTree
-
     def setSkbioTree(self, skbioTree):
         self.__treeTable.skbioTree = skbioTree
 
@@ -81,8 +80,6 @@ class HaplotypeTree:
 
     def getTreeHeight(self):
         return self.__treeTable.treeHeight
-    def setTreeHeight(self, treeHeight):
-        self.__treeTable.treeHeight = treeHeight
 
     def getDistanceToLeaf(self, nodeId, branchDistance):
         return self.__treeTable.distanceToLeaf(nodeId, branchDistance)
@@ -434,11 +431,6 @@ class HaplotypeTree:
                 # check root
                 if not geneNodeParent:
                     haplotypeTree.setSkbioTree(newNode)
-                    leaveNode = None
-                    for node in newNode.tips():
-                        leaveNode = node
-                        break
-                    haplotypeTree.setTreeHeight(newNode.distance(leaveNode))
                 else:
                     newNode.parent = geneNodeParent
 
@@ -492,11 +484,6 @@ class HaplotypeTree:
                 # check root
                 if not geneNodeParent:
                     haplotypeTree.setSkbioTree(newNode)
-                    leaveNode = None
-                    for node in newNode.tips():
-                        leaveNode = node
-                        break
-                    haplotypeTree.setTreeHeight(newNode.distance(leaveNode))
                 else:
                     newNode.parent = geneNodeParent
 

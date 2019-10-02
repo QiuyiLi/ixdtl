@@ -101,6 +101,11 @@ class TreeTable:
         return self.__skbioTree
     @skbioTree.setter
     def skbioTree(self, skbioTree):
+        leaveNode = None
+        for node in skbioTree.tips():
+            leaveNode = node
+            break
+        self.__treeHeight = skbioTree.distance(leaveNode)
         self.__skbioTree = skbioTree
 
     @property
@@ -118,9 +123,6 @@ class TreeTable:
     @property
     def treeHeight(self):
         return self.__treeHeight
-    @treeHeight.setter
-    def treeHeight(self, treeHeight):
-        self.__treeHeight = treeHeight
 
     def getEntryById(self, id):
         return self.__tableDictId[id]
