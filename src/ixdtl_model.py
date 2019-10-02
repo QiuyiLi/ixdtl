@@ -56,22 +56,15 @@ class IxDTLModel:
         # run dtl process
         events = self.haplotypeTree.dtlProcess(distance=0)
         events.sort(reverse=True, key=lambda x: x['eventHeight'])
-        print('events:')
-        print(events)
-        print()
 
         # run dt subtree
         geneTree = self.haplotypeTree.dtSubtree(
             coalescentProcess=self.haplotypeTree.coalescentProcess, 
             events=events, haplotypeTree=self.haplotypeTree, level=0)
 
-        print(geneTree.getSkbioTree().ascii_art())
-
-        rootTreeNode = geneTree.getSkbioTree()
-        for node in geneTree.getSkbioTree().tips():
-            print(str(rootTreeNode.distance(node)) + ' ' + str(node.name))
-
-
+        f = open('./output/gene_tree.newick','w')
+        f.write(str(geneTree.getSkbioTree()))
+        f.close()
 
     def setParameters(self, coalescent, duplication, transfer, loss, 
         hemiplasy, recombination):
@@ -107,10 +100,6 @@ class IxDTLModel:
         self.speciesTree.setCoalescentRate(
             coalescentPrmt=self.__parameters['coalescent'])
             
-        print('species tree:')
-        print(self.speciesTree)
-        print()
-            
     def constructOriginalHaplotypeTree(self):
         self.__haplotypeTree = HaplotypeTree(
             randomState=self.randomState, speciesTree=self.speciesTree)
@@ -125,10 +114,4 @@ class IxDTLModel:
             recombination=self.parameters['recombination'])
         self.haplotypeTree.setHemiplasy(
             hemiplasy=self.parameters['hemiplasy'])
-
-        print('original haplotype tree:')
-        print(self.haplotypeTree)
-        print(self.haplotypeTree.getSkbioTree().ascii_art())
-        print()
-        
         
