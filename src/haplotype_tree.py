@@ -381,6 +381,7 @@ class HaplotypeTree:
         3. do subtree coalescence to obtain the sub_coalescent_tree
         4. find all the duplication points on the sub_coalescent_tree
         5. recurse
+        fixation: at each level, update the parent haplotype tree finishing each event
         """
         eventIndex = -1
         for event in events:
@@ -478,6 +479,7 @@ class HaplotypeTree:
                 print('loss')
 
                 # cut tree bug here...
+                # do not cut it for now, lable the loss points and delete all of them all at once when everything done
                 # haplotypeSkbioTree = haplotypeTree.getSkbioTree()
                 # haplotypeSkbioTree.remove_deleted(
                 #     lambda x: x.name == event['geneNodeName'])
