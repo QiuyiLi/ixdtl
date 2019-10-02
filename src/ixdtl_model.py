@@ -62,6 +62,7 @@ class IxDTLModel:
             coalescentProcess=self.haplotypeTree.coalescentProcess, 
             events=events, haplotypeTree=self.haplotypeTree, level=0)
 
+        # output newick to file
         f = open('./output/gene_tree.newick','w')
         f.write(str(geneTree.getSkbioTree()))
         f.close()
