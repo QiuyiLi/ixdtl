@@ -66,6 +66,10 @@ class IxDTLModel:
 
         print(geneTree.getSkbioTree().ascii_art())
 
+        rootTreeNode = geneTree.getSkbioTree()
+        for node in geneTree.getSkbioTree().tips():
+            print(rootTreeNode.distance(node))
+
 
 
     def setParameters(self, coalescent, duplication, transfer, loss, 

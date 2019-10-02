@@ -52,14 +52,14 @@ def readCommand(argv):
         help=default(
             'the parameters of the gamma distribution for duplication event, '
             'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-        default='shape=20,scale=0.01')
+        default='shape=50,scale=0.01')
         
     parser.add_option(
         '-t', '--transferArgs', dest='transferArgs',
         help=default(
             'the parameters of the gamma distribution for transfer event, '
             'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-        default='shape=20,scale=0.01')
+        default='shape=0.01,scale=0.01')
 
     parser.add_option(
         '-l', '--lossArgs', dest='lossArgs',
