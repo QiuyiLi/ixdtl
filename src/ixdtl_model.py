@@ -6,8 +6,10 @@ from .exception import *
 
 class IxDTLModel:
 
-    def __init__(self, seed=0):
-        self.__randomState = np.random.RandomState(seed)
+    # def __init__(self, seed=0):
+    #     self.__randomState = np.random.RandomState(seed)
+    def __init__(self):
+        self.__randomState = np.random.RandomState()
 
         self.__speciesTree = None
         self.__haplotypeTree = None
