@@ -55,7 +55,7 @@ class IxDTLModel:
         self.constructOriginalHaplotypeTree()
 
         # run dtl process
-        events = self.haplotypeTree.dtlProcess(distance=0)
+        events = self.haplotypeTree.dtlProcess(distanceAboveRoot=0)
         events.sort(reverse=True, key=lambda x: x['eventHeight'])
 
         # run dt subtree
