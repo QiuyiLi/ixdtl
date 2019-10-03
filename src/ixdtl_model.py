@@ -63,25 +63,48 @@ class IxDTLModel:
             coalescentProcess=self.haplotypeTree.coalescentProcess, 
             events=events, haplotypeTree=self.haplotypeTree, level=0)
 
-        # output newick to file
-        f = open('./output/gene_tree.newick','w')
-        f.write(str(geneTree.getSkbioTree()))
-        f.close()
-
-        if self.__parameters['verbose']:
-            print(geneTree.getSkbioTree().ascii_art())	
-            rootTreeNode = geneTree.getSkbioTree()       
-            for node in geneTree.getSkbioTree().tips():	
-                print(str(rootTreeNode.distance(node)) + ' ' + str(node.name))
-
         # cut the tree
         geneSkbioTree = geneTree.getSkbioTree()
-        for node in geneSkbioTree.traverse():
-            if 'loss' in node.name:
-                geneSkbioTree.remove_deleted(
+        geneSkbioTreeTruncated = geneSkbioTree.deepcopy()
+        for node in geneSkbioTreeTruncated.traverse():
+            if (node.children 
+                and 'loss' in node.children[0].name 
+                and 'loss' in node.children[1].name):
+                geneSkbioTreeTruncated.remove_deleted(
                     lambda x: x.name == node.name)
-        geneSkbioTree.prune()
-        print(geneSkbioTree.ascii_art())
+        geneSkbioTreeTruncated.prune()
+        for node in geneSkbioTreeTruncated.traverse():
+            if 'loss' in node.name:
+                geneSkbioTreeTruncated.remove_deleted(
+                    lambda x: x.name == node.name)
+        geneSkbioTreeTruncated.prune()
+
+        if not geneSkbioTreeTruncated:
+                print('Exception: ALL LOST')
+                return
+            
+        if self.__parameters['verbose']:
+            # visualizing the untruncated tree
+            print('untruncated tree:')
+            print(geneSkbioTree.ascii_art())	    
+            # check time consistency 
+            for node in geneSkbioTree.tips():	
+                print(str(geneSkbioTree.distance(node)) + ' ' + str(node.name))
+            # visualizing the truncated tree
+            print('truncated tree:')
+            print(geneSkbioTreeTruncated.ascii_art())
+            # check time consistency
+            for node in geneSkbioTreeTruncated.tips():	
+                print(str(geneSkbioTreeTruncated.distance(node)) + ' ' + str(node.name))
+                
+        # save newick to file
+        f = open('./output/gene_tree_full.newick','w')
+        f.write(str(geneSkbioTree))
+        f.close()
+
+        f = open('./output/gene_tree_truncated.newick','w')
+        f.write(str(geneSkbioTreeTruncated))
+        f.close()
 
     def setParameters(self, coalescent, duplication, transfer, loss, 
         hemiplasy, recombination, verbose):
