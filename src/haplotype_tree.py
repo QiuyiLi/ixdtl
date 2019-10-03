@@ -155,6 +155,30 @@ class HaplotypeTree:
             skbioTree.length = None
         return skbioTree
 
+    # utility function used in __createSkbioTreeRecurse
+    def __distanceToParent(self, nodeName, parentName, timeSequences):
+        for leaf, sequence in timeSequences.items():
+            if (nodeName.count('*') == 1 and nodeName[0] == str(leaf)):
+                for pair in sequence:
+                    if pair[0] == parentName:
+                        return pair[1]
+            else:
+                prevPair = None
+                for pair in sequence:
+                    if (prevPair != None 
+                        and prevPair[0] == nodeName 
+                        and pair[0] == parentName):
+                        return pair[1] - prevPair[1]
+                    prevPair = pair
+        return None
+
+    # utility function used in __createSkbioTreeRecurse
+    def __starReplace(self, string, substring):
+        a = string.split('*')[:-1]
+        b = substring.split('*')[:-1]
+        diff = set(a).difference(set(b))
+        return ''.join([e + '*' for e in sorted(list(diff))])
+
     def __createSkbioTreeRecurse(self, skbioTree, timeSequences):
         # one node (leaf) case (trivial)
         if skbioTree.name.count('*') == 1:
@@ -227,6 +251,13 @@ class HaplotypeTree:
             skbioTreeNode=self.getSkbioTree(), distanceAboveRoot=distanceAboveRoot, events=events)
         return events
 
+    def __getEventRateInAncestralBranch(self, eventType, clade):
+        indices = []
+        splited = clade.split('*')[:-1]
+        for index in splited:
+            indices.append(int(index))
+        return mean(self.eventRates[eventType][indices])
+
     def __dtlProcessRecurse(self, skbioTreeNode, distanceAboveRoot, events):
         node = self.getNodeByName(skbioTreeNode.name)
 
@@ -247,7 +278,7 @@ class HaplotypeTree:
                 geneId=node.id, eventHeight=eventHeight, speciesId=None)
             events.append({
                 'type': 'duplication',
-                'geneNodeId': node.id, 
+                'geneNodeId': node.id,      # closest gene node to the event from below
                 'geneNodeName': node.name, 
                 'distanceToGeneNode': distanceAboveRoot - distanceD,
                 'eventHeight': eventHeight,
@@ -270,12 +301,12 @@ class HaplotypeTree:
                 if target:
                     events.append({
                         'type': 'transfer',
-                        'geneNodeId': node.id, 
+                        'geneNodeId': node.id,      # closest gene node to the event from below
                         'geneNodeName': node.name, 
                         'distanceToGeneNode': distanceAboveRoot - distanceT,
                         'targetSpeciesId': target,
                         'eventHeight': eventHeight,
-                        'speciesNodeId': speciesId,
+                        'speciesNodeId': speciesId,      # closest species node to the event from below
                         'distanceToSpeciesNode': distanceAboveSpeciesNode,
                         'index': -1
                     })
@@ -287,20 +318,18 @@ class HaplotypeTree:
             eventHeight = self.getDistanceToLeaf(node.id, 0) + distanceAboveRoot - distanceL
             speciesId, distanceAboveSpeciesNode = self.__mapEventToSpeciesTree(
                 geneId=node.id, eventHeight=eventHeight, speciesId=None)
-            # speciesId = self.node_by_id(speciesId).parent_id
             events.append({
                 'type': 'loss',
-                'geneNodeId': node.id, 
+                'geneNodeId': node.id,      # closest gene node to the event from below
                 'geneNodeName': node.name, 
                 'distanceToGeneNode': distanceAboveRoot - distanceL,
                 'eventHeight': eventHeight,
-                'speciesNodeId': speciesId,
+                'speciesNodeId': speciesId,     # closest species node to the event from below
                 'distanceToSpeciesNode': distanceAboveSpeciesNode,
                 'index': -1
             })
         else:
             # reach the end the current branch, looking for events in the 2 children branches
-            # print('nothing happened at node ' + str(node.id) + ' (' + node.name + ')' + '\n')
             if (node.children):     # if children branches exist
                 childL = skbioTreeNode.children[0]
                 childR = skbioTreeNode.children[1]
@@ -312,9 +341,25 @@ class HaplotypeTree:
                 self.__dtlProcessRecurse(
                     skbioTreeNode=childR, 
                     distanceAboveRoot=distanceToChildR, events=events)
-            # else:       # if not exist, reach the leaves of the tree, searching process stops
-            #     print('reach the end of node ' + str(node.id) + ' (' + node.name + ')' + '\n')
+            # else: if not exist, reach the leaves of the tree, searching process stops
 
+    # M function: map the event point to where it occurs in the species tree
+    def __mapEventToSpeciesTree(self, geneId, eventHeight, speciesId=None):
+        if speciesId == None:
+            speciesId = self.__mapGeneIdToSpeciesId(geneId=geneId)
+        distanceAboveSpeciesNode = eventHeight - self.speciesTree.getDistanceToLeaf(speciesId, 0)
+        if speciesId == self.speciesTree.getRoot().id:
+            return speciesId, distanceAboveSpeciesNode
+        else:
+            speciesIdParent = self.speciesTree.getNodeById(speciesId).parent
+            speciesDistanceParent = self.speciesTree.getDistanceToLeaf(speciesIdParent, 0)
+            if speciesDistanceParent > eventHeight:
+                return speciesId, distanceAboveSpeciesNode
+            else:
+                return self.__mapEventToSpeciesTree(
+                    geneId=geneId, eventHeight=eventHeight, speciesId=speciesIdParent)
+
+    # map the gene node to the species node where the coalesent happens to give birth to itself
     def __mapGeneIdToSpeciesId(self, geneId):
         speciesId = None
         geneName = self.getNodeById(geneId).name
@@ -331,22 +376,6 @@ class HaplotypeTree:
             # trivial case
             speciesId = int(geneName[:-1])     
         return speciesId
-
-    # M function
-    def __mapEventToSpeciesTree(self, geneId, eventHeight, speciesId=None):
-        if speciesId == None:
-            speciesId = self.__mapGeneIdToSpeciesId(geneId=geneId)
-        distanceAboveSpeciesNode = eventHeight - self.speciesTree.getDistanceToLeaf(speciesId, 0)
-        if speciesId == self.speciesTree.getRoot().id:
-            return speciesId, distanceAboveSpeciesNode
-        else:
-            speciesIdParent = self.speciesTree.getNodeById(speciesId).parent
-            speciesDistanceParent = self.speciesTree.getDistanceToLeaf(speciesIdParent, 0)
-            if speciesDistanceParent > eventHeight:
-                return speciesId, distanceAboveSpeciesNode
-            else:
-                return self.__mapEventToSpeciesTree(
-                    geneId=geneId, eventHeight=eventHeight, speciesId=speciesIdParent)
 
     def __findTransferTarget(self, eventHeight, geneId):
         speciesNodes = self.speciesTree.getNodes()
@@ -365,43 +394,13 @@ class HaplotypeTree:
                     nodesList.append(node.id)
         return self.randomState.choice(nodesList), originSpeciesId
 
-    def __getEventRateInAncestralBranch(self, eventType, clade):
-        indices = []
-        splited = clade.split('*')[:-1]
-        for index in splited:
-            indices.append(int(index))
-        return mean(self.eventRates[eventType][indices])
-
-    def __distanceToParent(self, nodeName, parentName, timeSequences):
-        for leaf, sequence in timeSequences.items():
-            if (nodeName.count('*') == 1 and nodeName[0] == str(leaf)):
-                for pair in sequence:
-                    if pair[0] == parentName:
-                        return pair[1]
-            else:
-                prevPair = None
-                for pair in sequence:
-                    if (prevPair != None 
-                        and prevPair[0] == nodeName 
-                        and pair[0] == parentName):
-                        return pair[1] - prevPair[1]
-                    prevPair = pair
-        return None
-
-    def __starReplace(self, string, substring):
-        a = string.split('*')[:-1]
-        b = substring.split('*')[:-1]
-        diff = set(a).difference(set(b))
-        return ''.join([e + '*' for e in sorted(list(diff))])
-
     def dtSubtree(self, coalescentProcess, events, haplotypeTree, level):
         """
-        1. find all the duplication points on the coalescent tree 
-        2. find the corresponding duplicaion subtree
-        3. do subtree coalescence to obtain the sub_coalescent_tree
-        4. find all the duplication points on the sub_coalescent_tree
+        1. simulate all the events on the haplotype tree 
+        2. construct the corresponding new locus tree
+        3. use incomplete coalescence to generate the new haplotype tree
+        4. simulate all the events on the haplotype tree 
         5. recurse
-        fixation: at each level, update the parent haplotype tree finishing each event
         """
         eventIndex = -1
         for event in events:
@@ -506,7 +505,9 @@ class HaplotypeTree:
                     print(haplotypeTree.getSkbioTree().ascii_art())
 
             elif (event['type'] == 'loss'):
-                print('loss')
+                geneNodeName = event['geneNodeName']
+                geneNode = haplotypeTree.getSkbioTree().find(geneNodeName)
+                geneNode.name = geneNode.name + '_loss'
 
                 # cut tree bug here...
                 # do not cut it for now, lable the loss points and delete all of them all at once when everything done
@@ -519,7 +520,7 @@ class HaplotypeTree:
 
     def __dtSubtreeRecurse(self, event, newLocusRootId, distanceAboveRoot, level):
         if (event['type'] == 'duplication' or event['type'] == 'transfer'): 
-            # nodeId = target_id
+            # for transfer nodeId = target_id
             speciesSkbioTree = self.speciesTree.getSkbioTree()
             newLocusRootName = self.speciesTree.getNodeById(newLocusRootId).name
 

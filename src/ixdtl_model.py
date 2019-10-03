@@ -74,6 +74,15 @@ class IxDTLModel:
             for node in geneTree.getSkbioTree().tips():	
                 print(str(rootTreeNode.distance(node)) + ' ' + str(node.name))
 
+        # cut the tree
+        geneSkbioTree = geneTree.getSkbioTree()
+        for node in geneSkbioTree.traverse():
+            if 'loss' in node.name:
+                geneSkbioTree.remove_deleted(
+                    lambda x: x.name == node.name)
+        geneSkbioTree.prune()
+        print(geneSkbioTree.ascii_art())
+
     def setParameters(self, coalescent, duplication, transfer, loss, 
         hemiplasy, recombination, verbose):
         if not coalescent:
