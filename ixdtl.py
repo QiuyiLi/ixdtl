@@ -78,6 +78,11 @@ def readCommand(argv):
         help=default('recombination option, 0 or 1'), metavar='RECOMBINATION',
         default=1)
 
+    parser.add_option(
+        '-v', '--verbose', type='int', dest='verbose',
+        help=default('verbose option, 0 or 1'), metavar='VERBOSE',
+        default=0)
+
     options, otherjunk = parser.parse_args(argv)
     if len(otherjunk) != 0:
         raise Exception('Command line input not understood: ' + str(otherjunk))
@@ -108,6 +113,12 @@ def readCommand(argv):
         parser.error('Invalid recombination option: ' +
                      str(options.recombination))
     args['recombination'] = True if options.recombination == 1 else False
+
+    # verbose option
+    if options.verbose != 0 and options.verbose != 1:
+        parser.error('Invalid verbose option: ' +
+                     str(options.verbose))
+    args['verbose'] = True if options.verbose == 1 else False
 
     return args
 

@@ -37,7 +37,7 @@ class IxDTLModel:
         return self.__randomState
 
     def run(self, inputFile, coalescentArgs, duplicationArgs, transferArgs, 
-        lossArgs, hemiplasy, recombination):
+        lossArgs, hemiplasy, recombination, verbose):
         # set parameters
         self.setParameters(
             coalescent=coalescentArgs, 
@@ -45,7 +45,8 @@ class IxDTLModel:
             transfer=transferArgs, 
             loss=lossArgs, 
             hemiplasy=hemiplasy,
-            recombination=recombination)
+            recombination=recombination,
+            verbose=verbose)
 
         # read a species tree from input file
         self.readSpeciesTree(inputFile)
@@ -67,8 +68,14 @@ class IxDTLModel:
         f.write(str(geneTree.getSkbioTree()))
         f.close()
 
+        if self.__parameters['verbose']:
+            print(geneTree.getSkbioTree().ascii_art())	
+            rootTreeNode = geneTree.getSkbioTree()       
+            for node in geneTree.getSkbioTree().tips():	
+                print(str(rootTreeNode.distance(node)) + ' ' + str(node.name))
+
     def setParameters(self, coalescent, duplication, transfer, loss, 
-        hemiplasy, recombination):
+        hemiplasy, recombination, verbose):
         if not coalescent:
             raise IxDTLError('missing coalescent parameter')
         self.__parameters['coalescent'] = coalescent
@@ -93,6 +100,10 @@ class IxDTLModel:
             raise IxDTLError('missing recombination option')
         self.__parameters['recombination'] = recombination
 
+        if verbose is None:
+            raise IxDTLError('missing verbose option')
+        self.__parameters['verbose'] = verbose
+
     def readSpeciesTree(self, path):
         self.__speciesTree = SpeciesTree(randomState=self.randomState)
 
@@ -100,12 +111,24 @@ class IxDTLModel:
 
         self.speciesTree.setCoalescentRate(
             coalescentPrmt=self.__parameters['coalescent'])
+        
+        if self.__parameters['verbose']:
+            print('species tree:')	
+            print(self.speciesTree)	
+            print(self.speciesTree.getSkbioTree().ascii_art())	
+            print()
             
     def constructOriginalHaplotypeTree(self):
         self.__haplotypeTree = HaplotypeTree(
             randomState=self.randomState, speciesTree=self.speciesTree)
 
         self.haplotypeTree.initialize(locusTree=self.speciesTree)
+
+        if self.__parameters['verbose']:
+            print('orifinal haplotype tree:')	
+            print(self.haplotypeTree)	
+            print(self.haplotypeTree.getSkbioTree().ascii_art())	
+            print()
 
         self.haplotypeTree.setEventRates(
             duplicationPrmt=self.parameters['duplication'],
@@ -115,4 +138,6 @@ class IxDTLModel:
             recombination=self.parameters['recombination'])
         self.haplotypeTree.setHemiplasy(
             hemiplasy=self.parameters['hemiplasy'])
+        self.haplotypeTree.setVerbose(
+            verbose=self.parameters['verbose'])
         

@@ -20,6 +20,7 @@ class HaplotypeTree:
         self.__eventRates = {}
         self.__recombination = None
         self.__hemiplasy = None
+        self.__verbose = None
 
     def __repr__(self):
         return str(self.__treeTable)
@@ -57,6 +58,10 @@ class HaplotypeTree:
     @property
     def hemiplasy(self):
         return self.__hemiplasy
+
+    @property
+    def verbose(self):
+        return self.__verbose
 
     def getSkbioTree(self):
         return self.__treeTable.skbioTree
@@ -113,6 +118,9 @@ class HaplotypeTree:
     def setHemiplasy(self, hemiplasy):
         self.__hemiplasy = hemiplasy
 
+    def setVerbose(self, verbose):
+        self.__verbose = verbose
+
     def createSkbioTree(self, timeSequences):
         skbioTree = skbio.tree.TreeNode()
         tempTimeSequences = timeSequences.copy()
@@ -123,7 +131,7 @@ class HaplotypeTree:
             self.__createSkbioTreeRecurse(
                 skbioTree=skbioTree, timeSequences=timeSequences)
             skbioTree.length = None
-        else:
+        else: # empty timeSequence {speicesId: []}
             skbioTree.name = str(next(iter(timeSequences))) + '*' # speciesid*
             skbioTree.length = None
         return skbioTree
@@ -390,6 +398,13 @@ class HaplotypeTree:
                 for node in newHaplotypeTree.getSkbioTree().traverse():
                     node.name = node.name + '_lv=' + str(level) + '_id=' + str(eventIndex)
                 
+                if self.verbose:
+                    print(newHaplotypeTree)
+                    print('new haplotype tree:')	
+                    print(newHaplotypeTree.getSkbioTree().ascii_art())	
+                    print('haplotype tree before:')	
+                    print(haplotypeTree.getSkbioTree().ascii_art())	
+
                 geneNodeName = event['geneNodeName']
                 geneNode = haplotypeTree.getSkbioTree().find(geneNodeName)
                 geneNodeParent = geneNode.parent
@@ -416,6 +431,11 @@ class HaplotypeTree:
                     haplotypeTree.setSkbioTree(newNode)
                 else:
                     newNode.parent = geneNodeParent
+
+                if self.verbose:
+                    print('haplotype tree after:')	
+                    print(haplotypeTree.getSkbioTree().ascii_art())
+
             elif (event['type'] == 'transfer'):
                 eventIndex = eventIndex + 1
                 transferTargetId = event['targetSpeciesId']
@@ -427,6 +447,13 @@ class HaplotypeTree:
                 
                 for node in newHaplotypeTree.getSkbioTree().traverse():
                     node.name = node.name + '_lv=' + str(level) + '_id=' + str(eventIndex)
+
+                if self.verbose:
+                    print(newHaplotypeTree)
+                    print('new haplotype tree:')	
+                    print(newHaplotypeTree.getSkbioTree().ascii_art())	
+                    print('haplotype tree before:')	
+                    print(haplotypeTree.getSkbioTree().ascii_art())	
                 
                 geneNodeName = event['geneNodeName']
                 geneNode = haplotypeTree.getSkbioTree().find(geneNodeName)
@@ -454,6 +481,10 @@ class HaplotypeTree:
                     haplotypeTree.setSkbioTree(newNode)
                 else:
                     newNode.parent = geneNodeParent
+
+                if self.verbose:
+                    print('haplotype tree after:')	
+                    print(haplotypeTree.getSkbioTree().ascii_art())
 
             elif (event['type'] == 'loss'):
                 print('loss')
