@@ -76,6 +76,20 @@ class SpeciesTree:
     def initialize(self, path):
         self.__treeTable = TreeTable()
         self.__treeTable.createFromNewickFile(path)
+        for speciesNode in self.getNodes():
+            for i in range(len(speciesNode.name)):  
+                leafName = speciesNode.name[i]
+                leafId = self.getNodeByName(leafName).id
+                speciesNode.clades.append(leafId)
+            if (speciesNode.children and not speciesNode.splits):
+                for i in range(len(speciesNode.children)):
+                    childName = self.getNodeById(speciesNode.children[i]).name
+                    split = []
+                    for j in range(len(childName)):  
+                        leafName = childName[j]
+                        leafId = self.getNodeByName(leafName).id
+                        split.append(leafId)
+                    speciesNode.splits.append(split)
 
     def coalescent(self, distanceAboveRoot):
         """

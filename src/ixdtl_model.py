@@ -62,9 +62,10 @@ class IxDTLModel:
         geneTree = self.haplotypeTree.dtSubtree(
             coalescentProcess=self.haplotypeTree.coalescentProcess, 
             events=events, haplotypeTree=self.haplotypeTree, level=0)
-
-        # cut the tree
         geneSkbioTree = geneTree.getSkbioTree()
+
+        # cut the tree 
+        geneTreeTruncated = geneTree
         geneSkbioTreeTruncated = geneSkbioTree.deepcopy()
         for node in geneSkbioTreeTruncated.traverse():
             if (node.children 
@@ -96,6 +97,10 @@ class IxDTLModel:
             # check time consistency
             for node in geneSkbioTreeTruncated.tips():	
                 print(str(geneSkbioTreeTruncated.distance(node)) + ' ' + str(node.name))
+            print(geneSkbioTreeTruncated.ascii_art())
+            # final gene table
+            geneTreeTruncated.readFromSkbioTree(skbioTree=geneSkbioTreeTruncated, rename=False)
+            print(geneTreeTruncated)
                 
         # save newick to file
         f = open('./output/gene_tree_full.newick','w')
@@ -157,7 +162,7 @@ class IxDTLModel:
         self.haplotypeTree.initialize(locusTree=self.speciesTree)
 
         if self.__parameters['verbose']:
-            print('orifinal haplotype tree:')	
+            print('original haplotype tree:')	
             print(self.haplotypeTree)	
             print(self.haplotypeTree.getSkbioTree().ascii_art())	
             print()

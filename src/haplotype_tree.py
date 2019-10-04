@@ -105,6 +105,17 @@ class HaplotypeTree:
         skbioTree = self.createSkbioTree(timeSequences)
         self.readFromSkbioTree(skbioTree, rename)
 
+        for geneNode in self.getNodes():
+            clades = geneNode.name.split('*')[:-1]
+            clades = [int(j) for j in clades]
+            geneNode.clades = clades
+            if (geneNode.children and not geneNode.splits):
+                for i in range(len(geneNode.children)):
+                    geneChildName = self.getNodeById(geneNode.children[i]).name 
+                    childClades = geneChildName.split('*')[:-1]
+                    childClades = [int(j) for j in childClades]
+                    geneNode.splits.append(childClades)
+
     def setEventRates(self, duplicationPrmt, transferPrmt, lossPrmt):
         if ('const' not in duplicationPrmt):
             self.__eventRates['d'] = self.randomState.gamma(
@@ -406,6 +417,76 @@ class HaplotypeTree:
                     nodesList.append(node.id)
         return self.randomState.choice(nodesList), originSpeciesId
 
+    # def find_ils(self, path):
+    #     for i in range(len(self.nodes)):
+    #         # searching in backward order
+    #         j = len(self.nodes)-1-i 
+    #         geneNode = self.getNodeById(j)
+    #         clades = geneNode.name.split('*')[:-1]
+    #         clades = [int(j) for j in clades]
+    #         geneNode.clades = clades
+
+    #         if (geneNode.children and not geneNode.splits):
+    #             for i in range(len(geneNode.children)):
+    #                 geneChildName = self.getNodeById(geneNode.children[i]).name 
+    #                 childClades = geneChildName.split('*')[:-1]
+    #                 childClades = [int(j) for j in childClades]
+    #                 geneNode.splits.append(childClades)
+
+    #         foundSpeciesNode = False
+    #         # find lowest possibile species node, then trace back
+    #         for speciesNode in self.speciesTree.getNodes: 
+    #             if (set(node.clade).issuperset(set(gene_clade))):
+    #                 foundSpeciesNode = True
+    #                 species_node = node
+    #                 break
+    #         if not foundSpeciesNode:
+    #             continue
+    #         species_clade = species_node.clade
+    #         species_splits = species_node.clade_split
+    #         find_ils = False
+    #         if (gene_splits):
+    #             gene_split_0 = set(gene_splits[0])
+    #             gene_split_1 = set(gene_splits[1])
+    #             for species_split in species_splits:
+    #                 if (set(species_split).intersection(gene_split_0) and set(species_split).intersection(gene_split_1)):
+    #                     find_ils = True
+    #                     break
+    #         if (find_ils):
+    #             species_id = self.map_gene_id_to_species_id(j)
+    #             index = Utility.increment()
+    #             self.full_events.append({
+    #                 'type': 'ils',
+    #                 'gene_node_id': j, 
+    #                 'gene_node_name': node.name, 
+    #                 'species_node_id': species_id,
+    #                 'index': index
+    #             })
+    #             # Debug.event_count['I'] += 1
+    #             file_name = 'ils_' + str(index)
+    #             f = open(os.path.join(path, file_name), 'w')
+    #             f.write(str(gene_node.name) + ',' + str(gene_split_0) + ' ' + str(gene_split_1))
+    #             f.close()
+    #             # print('find ils at gene node ' + str(gene_node.name) + ' split: ' + str(gene_split_0) + ' ' 
+    #             #         + str(gene_split_1) + ' ' + 'species_id: ' + str(species_id))
+    #         else: 
+    #             if (gene_splits):
+    #                 species_id = self.map_gene_id_to_species_id(j)
+    #                 index = Utility.increment()
+    #                 self.full_events.append({
+    #                     'type': 's',
+    #                     'gene_node_id': j, 
+    #                     'gene_node_name': node.name, 
+    #                     'species_node_id': species_id,
+    #                     'index': index
+    #                 })
+    #                 file_name = 's_' + str(index)
+    #                 f = open(os.path.join(path, file_name), 'w')
+    #                 f.write(str(gene_node.name) + ',' + str(gene_split_0) + ' ' + str(gene_split_1))
+    #                 f.close()
+    #                 # print('find speciation at gene node ' + str(gene_node.name) + ' split: ' + str(gene_split_0) + ' ' 
+    #                 #         + str(gene_split_1) + ' ' + 'species_id: ' + str(species_id))
+
     def dtSubtree(self, coalescentProcess, events, haplotypeTree, level):
         """
         1. simulate all the events on the haplotype tree 
@@ -440,7 +521,7 @@ class HaplotypeTree:
                 geneNodeParent = geneNode.parent
                 # 1. create new node
                 newNode = skbio.tree.TreeNode()
-                newNode.name = 't' + '_lv=' + str(level) + '_id=' + str(eventIndex)
+                newNode.name = 'd' + '_lv=' + str(level) + '_id=' + str(eventIndex)
                 # 2. change length
                 newHaplotypeTree.getSkbioTree().length = event['eventHeight'] - newHaplotypeTree.getTreeHeight()
                 newNode.length = 0 if not geneNodeParent else geneNode.length - event['distanceToGeneNode']
