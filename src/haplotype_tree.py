@@ -106,15 +106,27 @@ class HaplotypeTree:
         self.readFromSkbioTree(skbioTree, rename)
 
     def setEventRates(self, duplicationPrmt, transferPrmt, lossPrmt):
-        self.__eventRates['d'] = self.randomState.gamma(
-            shape=duplicationPrmt['shape'], scale=duplicationPrmt['scale'],
-            size=len(self.getLeaves()))
-        self.__eventRates['t'] = self.randomState.gamma(
-            shape=transferPrmt['shape'], scale=transferPrmt['scale'],
-            size=len(self.getLeaves()))
-        self.__eventRates['l'] = self.randomState.gamma(
-            shape=lossPrmt['shape'], scale=lossPrmt['scale'],
-            size=len(self.getLeaves()))
+        if ('const' not in duplicationPrmt):
+            self.__eventRates['d'] = self.randomState.gamma(
+                shape=duplicationPrmt['shape'], scale=duplicationPrmt['scale'],
+                size=len(self.getLeaves()))
+        else:
+            self.__eventRates['d'] = np.repeat(duplicationPrmt['const'], 
+                len(self.getLeaves()))
+        if ('const' not in transferPrmt):
+            self.__eventRates['t'] = self.randomState.gamma(
+                shape=transferPrmt['shape'], scale=transferPrmt['scale'],
+                size=len(self.getLeaves()))
+        else:
+            self.__eventRates['t'] = np.repeat(transferPrmt['const'], 
+                len(self.getLeaves()))
+        if ('const' not in lossPrmt):
+            self.__eventRates['l'] = self.randomState.gamma(
+                shape=lossPrmt['shape'], scale=lossPrmt['scale'],
+                size=len(self.getLeaves()))
+        else:
+            self.__eventRates['l'] = np.repeat(lossPrmt['const'], 
+                len(self.getLeaves()))
 
     # If true, then new locus is indpendent of the original locus
     # (locus tree model, IxDTL model)

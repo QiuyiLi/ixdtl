@@ -45,28 +45,28 @@ def readCommand(argv):
         help=default(
             'the parameters of the gamma distribution for coalescent, '
             'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-        default='shape=80,scale=0.01')
+        default='const=0.8')
 
     parser.add_option(
         '-d', '--duplicationArgs', dest='duplicationArgs',
         help=default(
             'the parameters of the gamma distribution for duplication event, '
             'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-        default='shape=10,scale=0.01')
+        default='const=0.1')
         
     parser.add_option(
         '-t', '--transferArgs', dest='transferArgs',
         help=default(
             'the parameters of the gamma distribution for transfer event, '
             'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-        default='shape=10,scale=0.01')
+        default='const=0.1')
 
     parser.add_option(
         '-l', '--lossArgs', dest='lossArgs',
         help=default(
             'the parameters of the gamma distribution for loss event, '
             'e.g., "shape=val1,scale=val2", or "const=val" if constant applies'),
-        default='shape=10,scale=0.01')
+        default='const=0.1')
 
     parser.add_option(
         '-h', '--hemiplasy', type='int', dest='hemiplasy',

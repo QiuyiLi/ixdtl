@@ -41,9 +41,13 @@ class SpeciesTree:
         self.__coalescentRate = coalescentRate
 
     def setCoalescentRate(self, coalescentPrmt):
-        self.__coalescentRate = self.randomState.gamma(
+        if ('const' not in coalescentPrmt):
+            self.__coalescentRate = self.randomState.gamma(
             shape=coalescentPrmt['shape'], scale=coalescentPrmt['scale'],
             size=len(self.getLeaves()))
+        else:
+            self.__coalescentRate = np.repeat(coalescentPrmt['const'], 
+                len(self.getLeaves()))
 
     def getSkbioTree(self):
         return self.__treeTable.skbioTree
